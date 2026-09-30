@@ -2,7 +2,13 @@ import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType } from '@angula
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, filter, map, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { DocumentMetadata, UploadedDocument, UploadProgress } from '../interfaces/document.interfaces';
+import {
+  DocumentDetail,
+  DocumentMetadata,
+  DocumentStatus,
+  UploadedDocument,
+  UploadProgress,
+} from '../interfaces/document.interfaces';
 import { formatBytes } from '../validators/file-validation';
 
 export type UploadEvent =
@@ -71,10 +77,70 @@ export function mapUploadError(error: unknown): UploadFailure {
   }
 }
 
+/**
+ * `not-found`: 404 o 400 (el enlace no lleva a un documento); `server`: red o 5xx;
+ * `unauthorized`: 401 (la sesión ya la cierra `authInterceptor`).
+ */
+export type DocumentLoadFailureKind = 'not-found' | 'server' | 'unauthorized';
+
+export interface DocumentLoadFailure {
+  kind: DocumentLoadFailureKind;
+  message: string;
+  retryable: boolean;
+}
+
+const LOAD_SERVER_FAILURE: DocumentLoadFailure = {
+  kind: 'server',
+  message: 'No se pudo cargar el documento. Inténtalo de nuevo',
+  retryable: true,
+};
+
+/** Traduce el error HTTP de GET /documents/:id a un fallo de UI genérico, sin códigos ni detalles internos. */
+export function mapGetError(error: unknown): DocumentLoadFailure {
+  if (!(error instanceof HttpErrorResponse)) {
+    return LOAD_SERVER_FAILURE;
+  }
+  switch (error.status) {
+    case 400:
+    case 404:
+      return { kind: 'not-found', message: 'Documento no encontrado', retryable: false };
+    case 401:
+      return { kind: 'unauthorized', message: 'Tu sesión expiró. Inicia sesión de nuevo', retryable: false };
+    default:
+      return LOAD_SERVER_FAILURE;
+  }
+}
+
+const STATUSES: readonly DocumentStatus[] = ['PROCESANDO', 'PROCESADO', 'ERROR'];
+
+function isDocumentDetail(body: unknown): body is DocumentDetail {
+  const doc = body as Partial<DocumentDetail> | null;
+  return (
+    !!doc &&
+    typeof doc.id === 'string' &&
+    !!doc.id &&
+    STATUSES.includes(doc.status as DocumentStatus) &&
+    Array.isArray(doc.tags)
+  );
+}
+
 @Injectable({ providedIn: 'root' })
 export class DocumentsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/documents`;
+
+  /** Consulta el detalle de un documento (metadatos, estado y contenido extraído). */
+  getById(id: string): Observable<DocumentDetail> {
+    return this.http.get<DocumentDetail>(`${this.baseUrl}/${encodeURIComponent(id)}`).pipe(
+      map((body) => {
+        if (!isDocumentDetail(body)) {
+          throw new HttpErrorResponse({ status: 500 });
+        }
+        return body;
+      }),
+      catchError((error: unknown) => throwError(() => mapGetError(error))),
+    );
+  }
 
   /** Envía el archivo y la metadata; emite el progreso de subida y, al final, el documento creado. */
   upload(file: File, metadata: DocumentMetadata): Observable<UploadEvent> {

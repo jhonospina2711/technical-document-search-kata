@@ -1,0 +1,77 @@
+<aside class="panel" aria-label="Metadatos del documento">
+  <h2 class="panel__title">Metadatos del documento</h2>
+
+  <dl class="fields">
+    <div class="field">
+      <dt>ID</dt>
+      <dd>
+        <div class="id-row">
+          <span class="mono id-row__value">{{ document().id }}</span>
+          <button type="button" class="copy-button" aria-label="Copiar ID del documento" (click)="copyId.emit()">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Copiar
+          </button>
+        </div>
+        <span class="feedback" aria-live="polite">{{ idCopyFeedback() }}</span>
+      </dd>
+    </div>
+
+    <div class="field">
+      <dt>Título</dt>
+      <dd class="field__value field__value--strong">{{ document().title }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Autor</dt>
+      <dd class="field__value">{{ document().author }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Categoría</dt>
+      <dd class="field__value">{{ document().category }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Etiquetas</dt>
+      <dd>
+        @if (document().tags.length > 0) {
+          <ul class="tags">
+            @for (tag of document().tags; track $index) {
+              <li class="tag mono">#{{ tag }}</li>
+            }
+          </ul>
+        } @else {
+          <span class="field__value field__value--muted">Sin etiquetas</span>
+        }
+      </dd>
+    </div>
+
+    <div class="field">
+      <dt>Versión</dt>
+      <dd class="field__value mono">{{ document().version }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Nombre de archivo</dt>
+      <dd class="field__value mono" [title]="document().fileName">{{ document().fileName }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Formato</dt>
+      <dd class="field__value">{{ formatLabel() }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Creado el</dt>
+      <dd class="field__value mono">{{ createdAt() }}</dd>
+    </div>
+
+    <div class="field">
+      <dt>Actualizado el</dt>
+      <dd class="field__value mono">{{ updatedAt() }}</dd>
+    </div>
+  </dl>
+</aside>
