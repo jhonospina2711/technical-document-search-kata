@@ -102,6 +102,14 @@ describe('TypeOrmDocumentSearchRepository', () => {
     expect(pageCall()[0]).toContain('search_vector @@ q.tsq');
   });
 
+  it('calcula el cuerpo y ts_headline una sola vez por fila: los LATERAL no se aplanan', async () => {
+    await repository.search({ query: 'x', sort: 'relevance', page: 1, pageSize: 10 });
+
+    const [sql] = pageCall();
+    expect(sql).toContain('AS body OFFSET 0) b');
+    expect(sql).toContain('AS headline OFFSET 0) h');
+  });
+
   it('devuelve una página vacía con el total real cuando la página está fuera de rango (AC-08)', async () => {
     query.mockImplementation((sql: string) =>
       Promise.resolve(sql.includes('pending_count') ? [{ total: 24, pending_count: 0 }] : []),

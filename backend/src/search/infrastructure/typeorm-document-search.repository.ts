@@ -21,6 +21,8 @@ const ORDER_BY: Record<SearchSort, (prefix: string) => string> = {
 // `ts_rank` normalizado (32: rank / (rank + 1)) → [0, 1). `ts_headline` solo para las filas de la página;
 // las marcas de control que ya tuviera el contenido se eliminan antes para que no falseen resaltados.
 // `truncated_*` se calculan aquí para no transferir el contenido completo al API.
+// `OFFSET 0` en los LATERAL `b` y `h` impide que el planificador los aplane: sin él copia `translate(left(...))`
+// y `ts_headline(...)` en cada referencia (7 y 5 veces por fila) y un documento grande cuesta ~5 veces más.
 const pageSql = (sort: SearchSort): string => String.raw`
   WITH q AS (SELECT websearch_to_tsquery('documents_es', $1) AS tsq),
   hits AS (
@@ -38,8 +40,8 @@ const pageSql = (sort: SearchSort): string => String.raw`
   FROM page p
   JOIN documents d ON d.id = p.id
   CROSS JOIN q
-  CROSS JOIN LATERAL (SELECT translate(left(d.content, ${HEADLINE_SOURCE_CHARS}), chr(1) || chr(2), '') AS body) b
-  CROSS JOIN LATERAL (SELECT ts_headline('documents_es', b.body, q.tsq, $4) AS headline) h
+  CROSS JOIN LATERAL (SELECT translate(left(d.content, ${HEADLINE_SOURCE_CHARS}), chr(1) || chr(2), '') AS body OFFSET 0) b
+  CROSS JOIN LATERAL (SELECT ts_headline('documents_es', b.body, q.tsq, $4) AS headline OFFSET 0) h
   CROSS JOIN LATERAL (
     SELECT btrim(replace(replace(coalesce(h.headline, ''), chr(1), ''), chr(2), ''), E' \t\r\n') AS plain
   ) f
