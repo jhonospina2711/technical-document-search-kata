@@ -70,6 +70,32 @@ describe('rutas y guards', () => {
     expect(pageText()).toContain('Hola, Ada');
   });
 
+  it('AC-02: sin sesión, /documents/upload redirige a /auth/login', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/documents/upload');
+
+    expect(pageText()).toContain('Iniciar sesión');
+  });
+
+  it('AC-01: con sesión, /documents/upload muestra la pantalla de carga', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/documents/upload');
+
+    expect(pageText()).toContain('Cargar documento');
+    expect(pageText()).toContain('Sin adjuntar');
+  });
+
+  it('la home enlaza a la pantalla de carga', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/');
+
+    const link = harness.routeNativeElement?.querySelector('a');
+    expect(link?.getAttribute('href')).toBe('/documents/upload');
+  });
+
   it('una URL desconocida termina en login si no hay sesión', async () => {
     auth.checkAuthStatus().subscribe();
 

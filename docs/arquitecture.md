@@ -28,9 +28,9 @@ y presentación.
 Aplicación Angular responsable de:
 
 - Búsqueda de documentos.
-- Carga de documentos.
+- Carga de documentos: pantalla `/documents/upload` (ruta privada, carga perezosa) que valida tipo y tamaño en el cliente, envía el archivo y la metadata por `POST /documents` con progreso de subida y muestra el identificador y el estado `PROCESANDO` devueltos por el API. El backend sigue siendo la autoridad de validación.
 - Visualización de documentos.
-- Recepción de eventos de procesamiento.
+- Recepción de eventos de procesamiento (pendiente: el seguimiento en vivo por SSE aún no está implementado en el frontend).
 
 ### Backend
 
