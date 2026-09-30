@@ -7,6 +7,7 @@ import { validateEnv } from './config/env.validation';
 import { typeOrmOptions } from './database/typeorm-options';
 import { DocumentsModule } from './documents/documents.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RealtimeModule } from './realtime/realtime.module';
     AuthModule,
     DocumentsModule,
     RealtimeModule,
+    SearchModule,
   ],
 })
 export class AppModule implements NestModule {

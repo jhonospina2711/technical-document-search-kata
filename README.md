@@ -97,11 +97,19 @@ El límite de tamaño que valida y muestra el frontend está en `frontend/src/en
 
 Ruta privada `/search` (enlace desde la home): barra de búsqueda, resultados como tarjetas con el término resaltado y la relevancia, orden (relevancia, fecha, título) y paginación de 10 en 10. `q`, `sort` y `page` viven en la URL (`/search?q=kubernetes&sort=title&page=2`), así que se puede recargar y compartir. Cubre los estados sin término, cargando, resultados, sin resultados y error. Los filtros (tipo, autor, etiquetas, fechas) aún no están.
 
-**El backend todavía no tiene `GET /search`.** Mientras tanto la pantalla se alimenta con un mock local (`frontend/src/app/search/services/search.mock.ts`, ~14 documentos ficticios), seleccionado con `useMockSearch` en `environment.ts` (`true`) y `environment.prod.ts` (`false`). El mock no es el mecanismo de búsqueda del producto (será PostgreSQL FTS): sus resultados, puntuaciones y el tiempo mostrado son simulados y no validan el objetivo de 400–1000 ms. Con `useMockSearch: false` la pantalla llama a `GET /search?q=&sort=relevance|date-desc|date-asc|title&page=&pageSize=10`; el contrato esperado de la respuesta está en `frontend/src/app/search/interfaces/search.interfaces.ts` y en `specs/10-frontend-search-results.md` §6.
+**La pantalla consume el `GET /search` real (SPEC-19)** tanto en desarrollo como en producción (`useMockSearch: false` en `environment.ts` y `environment.prod.ts`): llama a `GET /search?q=&sort=relevance|date-desc|date-asc|title&page=&pageSize=10` y el contrato de la respuesta está en `frontend/src/app/search/interfaces/search.interfaces.ts` y en `specs/10-frontend-search-results.md` §6. El mock local (`frontend/src/app/search/services/search.mock.ts`, ~14 documentos ficticios) se conserva para las pruebas y para trabajar sin backend (`useMockSearch: true` en `environment.ts`); sus resultados, puntuaciones y tiempo son simulados y no validan el objetivo de 400–1000 ms.
 
 Términos de prueba con el mock: `kubernetes` (12 resultados, dos páginas), `terraform` (1 resultado), un término sin coincidencias (estado vacío) y `error` (fuerza el estado de error).
 
-Limitaciones conocidas: el código y los datos del mock también viajan en el bundle de producción (el flag se evalúa en ejecución; no se ejecuta con `useMockSearch: false`, pero no se elimina del paquete). «Ver documento» enlaza a `/documents/:id`, ruta que aún no existe (redirige a la home).
+Limitaciones conocidas: el código y los datos del mock también viajan en el bundle de producción (el flag se evalúa en ejecución; no se ejecuta con `useMockSearch: false`, pero no se elimina del paquete). «Ver documento» enlaza a `/documents/:id?q=<término>` (visor, abajo).
+
+### Visor de documentos (frontend)
+
+Ruta privada `/documents/:id` (se llega desde «Ver documento» en los resultados o por enlace directo): consulta `GET /documents/:id` y muestra el título, el estado (`PROCESADO`, `PROCESANDO` o `ERROR`), los metadatos completos y el texto extraído, con contador de caracteres y palabras y botones para copiar el contenido y el ID. El contenido llega como texto plano y se muestra como tal (saltos de línea preservados, sin Markdown ni HTML). Si la URL trae `?q=término`, se resaltan en el texto las coincidencias literales de esos términos (sin distinguir mayúsculas; hasta 10 términos y 500 marcas). Ese resaltado no reproduce el stemming ni los acentos del FTS de PostgreSQL, así que una palabra que el buscador considera coincidente puede no resaltarse.
+
+Estados: cargando (esqueleto), `PROCESANDO` (aviso y botón «Actualizar»; no hay SSE todavía, se actualiza a mano), `ERROR` (mensaje genérico: el backend no guarda el motivo), «Documento no encontrado» (`404` o `400`) y error de red o `5xx` (con «Reintentar»). «Volver a resultados» usa el historial si se llegó desde otra pantalla de la app, y si no, va a `/search` (con `?q=` si existe).
+
+Limitaciones conocidas: el contenido se pinta completo (sin paginar ni virtualizar), así que documentos muy grandes pueden tardar en renderizar; el visor se validó visualmente con respuestas simuladas, no contra el backend real.
 
 ## Document Worker
 

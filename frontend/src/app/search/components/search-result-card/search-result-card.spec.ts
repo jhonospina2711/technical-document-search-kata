@@ -66,6 +66,25 @@ describe('SearchResultCard', () => {
     expect(links[1].getAttribute('aria-label')).toBe(`Ver documento: ${ITEM.title}`);
   });
 
+  it('SPEC-11 AC-17: con término, los enlaces llevan ?q= y sin término no', () => {
+    fixture.componentRef.setInput('term', 'kubernetes & helm');
+    render();
+
+    const hrefs = Array.from(host.querySelectorAll<HTMLAnchorElement>('a')).map((link) => link.getAttribute('href')!);
+    expect(hrefs.length).toBe(2);
+    for (const href of hrefs) {
+      const url = new URL(href, 'http://localhost');
+      expect(url.pathname).toBe(`/documents/${ITEM.id}`);
+      expect(url.searchParams.get('q')).toBe('kubernetes & helm');
+    }
+
+    fixture.componentRef.setInput('term', '');
+    fixture.detectChanges();
+    for (const link of Array.from(host.querySelectorAll<HTMLAnchorElement>('a'))) {
+      expect(link.getAttribute('href')).toBe(`/documents/${ITEM.id}`);
+    }
+  });
+
   it('resalta solo los segmentos marcados y añade puntos suspensivos al truncar', () => {
     render();
 

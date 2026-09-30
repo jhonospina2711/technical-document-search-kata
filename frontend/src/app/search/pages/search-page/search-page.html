@@ -71,7 +71,7 @@
       @case ('results') {
         @if (view().response; as response) {
           @for (item of response.items; track item.id) {
-            <app-search-result-card [item]="item" />
+            <app-search-result-card [item]="item" [term]="view().q" />
           }
         }
       }
