@@ -113,3 +113,22 @@ Proceso aparte del API (`backend/src/worker`) que consume la cola `documents.pro
 - **Mensajes malformados** van directamente a la DLQ.
 - Es idempotente ante entregas repetidas y reconecta solo si RabbitMQ se cae. Con SIGINT/SIGTERM termina el mensaje en curso antes de salir.
 - Revisar la DLQ: consola de RabbitMQ (`http://localhost:15672`) → cola `documents.process.dlq`.
+- **Aviso de estado:** tras dejar el estado final en PostgreSQL, publica `DOCUMENT_STATUS_CHANGED` en el exchange `documents.status` (ver la sección siguiente). Es de mejor esfuerzo: si RabbitMQ no confirma en 5 s se registra el error y el procesamiento no se ve afectado (el mensaje igual recibe `ack`).
+
+## Avisos de estado en tiempo real (SSE)
+
+El módulo `Realtime` del API (`backend/src/realtime`) consume el exchange `fanout` `documents.status` con una cola exclusiva y efímera por instancia, y reenvía cada evento por Server-Sent Events al dueño del documento. SSE solo notifica estado: el contenido se consulta con `GET /documents/:id`.
+
+`GET /realtime/events` (requiere `Authorization: Bearer <token>`; responde `401` sin token o con token inválido) mantiene la conexión abierta y emite:
+
+```
+event: document-status
+data: {"type":"DOCUMENT_STATUS_CHANGED","documentId":"<uuid>","status":"PROCESADO"}
+```
+
+- `status` es `PROCESADO` o `ERROR`. Cada conexión recibe solo los eventos de los documentos del usuario autenticado; el `data` no incluye `ownerId`. Varias pestañas del mismo usuario reciben el mismo evento.
+- Cada 25 s se envía `event: heartbeat` (`data: {}`) para que proxies y balanceadores no cierren la conexión. Nest añade un `id` secuencial por conexión que el servidor no usa.
+- La entrega es como mucho una vez y sin reenvío: los eventos ocurridos sin conexión (del cliente o del API con RabbitMQ) se pierden. Tras (re)conectar, el cliente debe consultar `GET /documents/:id`.
+- `EventSource` del navegador no permite la cabecera `Authorization`: el cliente debe usar `fetch` con streaming. Ese cliente (y la actualización reactiva de la pantalla de carga) aún no está implementado.
+- No hay límite de conexiones por usuario, y el JWT solo se valida al abrir la conexión.
+- Probar a mano: `curl -N -H "Authorization: Bearer <token>" http://localhost:<PORT>/realtime/events` y cargar un documento con el Worker en marcha.

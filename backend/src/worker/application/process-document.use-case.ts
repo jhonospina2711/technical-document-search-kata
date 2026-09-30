@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { FileStore } from '../../documents/application/ports';
 import { Document, DocumentStatus, markFailed, markProcessed } from '../../documents/domain/document';
 import { DocumentProcessingError, SourceFileMissingError } from './errors';
-import { ContentExtractor, DocumentProcessingRepository } from './ports';
+import { NotifiedStatus } from '../../realtime/domain/document-status-event';
+import { ContentExtractor, DocumentProcessingRepository, DocumentStatusNotifier } from './ports';
 
 /**
  * Procesa un documento pendiente. Resuelve sin error cuando el mensaje puede confirmarse (ack):
@@ -17,6 +18,7 @@ export class ProcessDocument {
     private readonly documents: DocumentProcessingRepository,
     private readonly files: FileStore,
     private readonly extractor: ContentExtractor,
+    private readonly notifier: DocumentStatusNotifier,
   ) {}
 
   async execute(documentId: string): Promise<void> {
@@ -33,7 +35,8 @@ export class ProcessDocument {
     }
 
     const outcome = await this.resolve(document);
-    if (await this.documents.saveOutcome(outcome)) {
+    const saved = await this.documents.saveOutcome(outcome);
+    if (saved) {
       const detail = outcome.content === null ? 'ERROR' : `PROCESADO (${outcome.content.length} caracteres)`;
       this.logger.log(`documento ${documentId} ${detail} en ${Date.now() - started} ms`);
     } else {
@@ -41,6 +44,14 @@ export class ProcessDocument {
     }
     // Solo tras persistir el estado final: si el borrado fallara antes, un reintento aún tendría el archivo.
     await this.removeFile(documentId);
+    // Solo si este consumidor fijó el estado final: una entrega repetida no vuelve a avisar.
+    if (saved) {
+      await this.notifier.notify({
+        documentId,
+        ownerId: outcome.ownerId,
+        status: outcome.status as NotifiedStatus,
+      });
+    }
   }
 
   /** Devuelve el documento en su estado final; los fallos deterministas lo marcan `ERROR`. */

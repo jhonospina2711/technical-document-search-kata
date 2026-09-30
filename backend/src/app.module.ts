@@ -6,6 +6,7 @@ import { requestIdMiddleware } from './common/request-id';
 import { validateEnv } from './config/env.validation';
 import { typeOrmOptions } from './database/typeorm-options';
 import { DocumentsModule } from './documents/documents.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DocumentsModule } from './documents/documents.module';
     }),
     AuthModule,
     DocumentsModule,
+    RealtimeModule,
   ],
 })
 export class AppModule implements NestModule {
