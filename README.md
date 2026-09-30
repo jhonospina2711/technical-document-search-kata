@@ -91,7 +91,17 @@ Riesgo conocido: si el proceso del API cae entre guardar el documento y recibir 
 
 Ruta privada `/documents/upload` (enlace desde la home): elige un archivo TXT, PDF o MD, completa título, autor, categoría, versión (SemVer `X.Y.Z`) y tags opcionales, y lo envía a `POST /documents` con progreso de subida. Al recibir `202` muestra el `id` y el estado `PROCESANDO`; el seguimiento en vivo del estado (SSE) aún no está implementado. Valida en cliente tipo, tamaño, archivo vacío y nombre, pero el backend sigue siendo la autoridad (`400`/`413`).
 
-El límite de tamaño que valida y muestra el frontend está en `frontend/src/environments/environment.ts` (`maxFileSizeBytes`, 10 MB) y debe mantenerse igual a `UPLOAD_MAX_FILE_SIZE_BYTES` del backend.
+El límite de tamaño que valida y muestra el frontend está en `frontend/src/environments/environment.ts` y `environment.prod.ts` (`maxFileSizeBytes`, 10 MB) y debe mantenerse igual a `UPLOAD_MAX_FILE_SIZE_BYTES` del backend en ambos archivos.
+
+### Pantalla de búsqueda (frontend)
+
+Ruta privada `/search` (enlace desde la home): barra de búsqueda, resultados como tarjetas con el término resaltado y la relevancia, orden (relevancia, fecha, título) y paginación de 10 en 10. `q`, `sort` y `page` viven en la URL (`/search?q=kubernetes&sort=title&page=2`), así que se puede recargar y compartir. Cubre los estados sin término, cargando, resultados, sin resultados y error. Los filtros (tipo, autor, etiquetas, fechas) aún no están.
+
+**El backend todavía no tiene `GET /search`.** Mientras tanto la pantalla se alimenta con un mock local (`frontend/src/app/search/services/search.mock.ts`, ~14 documentos ficticios), seleccionado con `useMockSearch` en `environment.ts` (`true`) y `environment.prod.ts` (`false`). El mock no es el mecanismo de búsqueda del producto (será PostgreSQL FTS): sus resultados, puntuaciones y el tiempo mostrado son simulados y no validan el objetivo de 400–1000 ms. Con `useMockSearch: false` la pantalla llama a `GET /search?q=&sort=relevance|date-desc|date-asc|title&page=&pageSize=10`; el contrato esperado de la respuesta está en `frontend/src/app/search/interfaces/search.interfaces.ts` y en `specs/10-frontend-search-results.md` §6.
+
+Términos de prueba con el mock: `kubernetes` (12 resultados, dos páginas), `terraform` (1 resultado), un término sin coincidencias (estado vacío) y `error` (fuerza el estado de error).
+
+Limitaciones conocidas: el código y los datos del mock también viajan en el bundle de producción (el flag se evalúa en ejecución; no se ejecuta con `useMockSearch: false`, pero no se elimina del paquete). «Ver documento» enlaza a `/documents/:id`, ruta que aún no existe (redirige a la home).
 
 ## Document Worker
 

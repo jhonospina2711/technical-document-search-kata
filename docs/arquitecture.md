@@ -27,7 +27,7 @@ y presentación.
 
 Aplicación Angular responsable de:
 
-- Búsqueda de documentos.
+- Búsqueda de documentos: pantalla `/search` (ruta privada, carga perezosa) con barra de búsqueda, resultados con el término resaltado y la relevancia, orden y paginación de 10 en 10. El estado (`q`, `sort`, `page`) vive en la URL. Consume `GET /search`, que aún no existe en el backend (SPEC-10 §6 define el contrato esperado); mientras tanto usa un mock local seleccionado con `useMockSearch` (`false` en producción). El resaltado llega como segmentos `{ text, highlight }` y se renderiza sin `innerHTML`.
 - Carga de documentos: pantalla `/documents/upload` (ruta privada, carga perezosa) que valida tipo y tamaño en el cliente, envía el archivo y la metadata por `POST /documents` con progreso de subida y muestra el identificador y el estado `PROCESANDO` devueltos por el API. El backend sigue siendo la autoridad de validación.
 - Visualización de documentos.
 - Recepción de eventos de procesamiento (pendiente: el seguimiento en vivo por SSE aún no está implementado en el frontend).

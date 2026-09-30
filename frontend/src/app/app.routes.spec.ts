@@ -96,6 +96,50 @@ describe('rutas y guards', () => {
     expect(link?.getAttribute('href')).toBe('/documents/upload');
   });
 
+  it('SPEC-10 AC-02: sin sesión, /search redirige a /auth/login', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/search');
+
+    expect(pageText()).toContain('Iniciar sesión');
+  });
+
+  it('SPEC-10 AC-01: con sesión, /search muestra la pantalla de búsqueda sin término', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/search');
+
+    expect(pageText()).toContain('Buscar documentos');
+    expect(pageText()).toContain('Búsqueda de documentación técnica');
+    expect(harness.routeNativeElement?.querySelector<HTMLInputElement>('#search-term')?.value).toBe('');
+  });
+
+  it('SPEC-10: /search?q=... consulta y muestra resultados del mock', async () => {
+    restoreSession();
+    jasmine.clock().install();
+    try {
+      await harness.navigateByUrl('/search?q=kubernetes');
+      expect(harness.routeNativeElement?.querySelectorAll('.skeleton').length).toBe(5);
+
+      jasmine.clock().tick(1000);
+      harness.detectChanges();
+
+      expect(pageText()).toContain('12 resultados para «kubernetes»');
+      expect(harness.routeNativeElement?.querySelectorAll('app-search-result-card').length).toBe(10);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('la home enlaza a la pantalla de búsqueda', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/');
+
+    const hrefs = Array.from(harness.routeNativeElement?.querySelectorAll('a') ?? []).map((link) => link.getAttribute('href'));
+    expect(hrefs).toContain('/search');
+  });
+
   it('una URL desconocida termina en login si no hay sesión', async () => {
     auth.checkAuthStatus().subscribe();
 

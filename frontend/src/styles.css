@@ -15,6 +15,9 @@
   --dropzone-bg: #eff4ff;
   --dropzone-bg-active: #dbe6ff;
   --dropzone-border: #98a2b3;
+  --highlight-bg: #fef3c7;
+  --highlight-text: #78350f;
+  --skeleton: #e4e7ec;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +38,9 @@
     --dropzone-bg: #182238;
     --dropzone-bg-active: #22345c;
     --dropzone-border: #5b6780;
+    --highlight-bg: #5c4310;
+    --highlight-text: #fde68a;
+    --skeleton: #2c3548;
   }
 }
 
