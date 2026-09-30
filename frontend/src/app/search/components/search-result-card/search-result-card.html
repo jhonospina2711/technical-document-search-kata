@@ -2,7 +2,7 @@
   <div class="card__head">
     <span class="badge" [attr.data-format]="item().format">{{ item().format }}</span>
     <div class="card__heading">
-      <a class="card__title" [routerLink]="documentLink()" [title]="item().title">{{ item().title }}</a>
+      <a class="card__title" [routerLink]="documentLink()" [queryParams]="documentQuery()" [title]="item().title">{{ item().title }}</a>
       <p class="card__meta">
         <span class="card__author">{{ item().author }}</span>
         <span class="card__separator" aria-hidden="true">•</span>
@@ -23,7 +23,7 @@
         }
       </p>
     </div>
-    <a class="card__action" [routerLink]="documentLink()" [attr.aria-label]="'Ver documento: ' + item().title">
+    <a class="card__action" [routerLink]="documentLink()" [queryParams]="documentQuery()" [attr.aria-label]="'Ver documento: ' + item().title">
       Ver documento <span aria-hidden="true">→</span>
     </a>
   </div>

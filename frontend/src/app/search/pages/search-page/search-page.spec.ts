@@ -146,6 +146,20 @@ describe('SearchPage', () => {
     expect(host.querySelector('.search__metrics')!.getAttribute('aria-live')).toBe('polite');
   });
 
+  it('SPEC-11 AC-17: los enlaces de las tarjetas llevan el término buscado como q', async () => {
+    await open('/search?q=configuración%20de%20kubernetes');
+
+    respond(response(24));
+
+    const links = Array.from(host.querySelectorAll<HTMLAnchorElement>('app-search-result-card a'));
+    expect(links.length).toBe(20);
+    for (const link of links) {
+      const url = new URL(link.getAttribute('href')!, 'http://localhost');
+      expect(url.pathname).toMatch(/^\/documents\/id-\d+$/);
+      expect(url.searchParams.get('q')).toBe('configuración de kubernetes');
+    }
+  });
+
   it('usa el singular con un solo resultado y no muestra paginación', async () => {
     await open('/search?q=helm');
 
