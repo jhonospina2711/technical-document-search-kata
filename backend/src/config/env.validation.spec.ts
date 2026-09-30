@@ -1,4 +1,4 @@
-import { validateEnv } from './env.validation';
+import { validateEnv, validateWorkerEnv } from './env.validation';
 
 const base = {
   JWT_SECRET: 's3cret',
@@ -53,5 +53,18 @@ describe('validateEnv', () => {
 
   it('falla si JWT_EXPIRES_IN no es una duración válida', () => {
     expect(() => validateEnv({ ...base, JWT_EXPIRES_IN: 'mañana' })).toThrow('JWT_EXPIRES_IN');
+  });
+});
+
+describe('validateWorkerEnv', () => {
+  const { JWT_SECRET: _omitted, ...worker } = base;
+
+  it('arranca sin JWT_SECRET y aplica valores por defecto', () => {
+    expect(validateWorkerEnv(worker)).toMatchObject({ POSTGRES_PORT: 5432, UPLOAD_DIR: './uploads' });
+  });
+
+  it('falla si falta RABBITMQ_URL o una variable de PostgreSQL', () => {
+    expect(() => validateWorkerEnv({ ...worker, RABBITMQ_URL: '' })).toThrow('RABBITMQ_URL');
+    expect(() => validateWorkerEnv({ ...worker, POSTGRES_DB: undefined })).toThrow('POSTGRES_DB');
   });
 });

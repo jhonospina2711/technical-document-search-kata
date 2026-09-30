@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Repository } from 'typeorm';
@@ -49,6 +49,22 @@ describe('FilesystemFileStore', () => {
     await store.save('doc-1', Buffer.from('contenido'));
 
     expect((await readFile(join(directory, 'doc-1'))).toString()).toBe('contenido');
+  });
+
+  it('lee el archivo guardado y devuelve null si no existe', async () => {
+    const store = new FilesystemFileStore({ getOrThrow: () => directory } as unknown as ConfigService);
+    await store.save('doc-1', Buffer.from('contenido'));
+
+    expect((await store.read('doc-1'))?.toString()).toBe('contenido');
+    expect(await store.read('otro')).toBeNull();
+  });
+
+  it('propaga los errores de lectura distintos de ENOENT', async () => {
+    const store = new FilesystemFileStore({ getOrThrow: () => directory } as unknown as ConfigService);
+    await store.save('doc-1', Buffer.from('x'));
+    await mkdir(join(directory, 'carpeta'));
+
+    await expect(store.read('carpeta')).rejects.toMatchObject({ code: 'EISDIR' });
   });
 
   it('elimina el archivo y no falla si ya no existe', async () => {
