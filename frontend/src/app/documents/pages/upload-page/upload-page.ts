@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { EMPTY, catchError, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { FileDropzone } from '../../components/file-dropzone/file-dropzone';
 import { DOCUMENT_CATEGORIES } from '../../constants/document-categories';
-import { DocumentMetadata, UploadedDocument, UploadProgress } from '../../interfaces/document.interfaces';
+import { DocumentMetadata, DocumentStatus, UploadedDocument, UploadProgress } from '../../interfaces/document.interfaces';
+import { DocumentStatusTracker } from '../../services/document-status-tracker';
 import { DocumentsService, UploadFailure } from '../../services/documents.service';
 import { fileFormatOf, formatBytes, validateFile } from '../../validators/file-validation';
 import { notBlank } from '../../validators/text.validators';
@@ -26,6 +28,7 @@ type TextField = 'title' | 'author' | 'category' | 'version';
 })
 export class UploadPage {
   private readonly documents = inject(DocumentsService);
+  private readonly tracker = inject(DocumentStatusTracker);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -53,6 +56,9 @@ export class UploadPage {
   protected readonly formError = signal<string | null>(null);
   protected readonly serverError = signal<UploadFailure | null>(null);
   protected readonly created = signal<UploadedDocument | null>(null);
+  /** Estado real del documento recién creado, actualizado por SSE; `live` indica si el seguimiento está conectado. */
+  protected readonly liveStatus = signal<DocumentStatus>('PROCESANDO');
+  protected readonly live = signal(false);
 
   private readonly formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   protected readonly canSubmit = computed(
@@ -67,6 +73,21 @@ export class UploadPage {
     if (file) return `${fileFormatOf(file.name)} · ${formatBytes(file.size)}`;
     return this.created() ? 'Carga completada' : 'Sin adjuntar';
   });
+
+  constructor() {
+    // Seguir solo el documento mostrado: cambiarlo o cerrar el banner cancela el seguimiento (y su conexión SSE) anterior.
+    toObservable(this.created)
+      .pipe(
+        switchMap((document) =>
+          document ? this.tracker.track(document.id).pipe(catchError(() => EMPTY)) : EMPTY,
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe(({ status, live }) => {
+        this.liveStatus.set(status);
+        this.live.set(live);
+      });
+  }
 
   protected errorOf(name: TextField): string | null {
     const control = this.form.controls[name];
@@ -183,6 +204,8 @@ export class UploadPage {
   private onUploaded(document: UploadedDocument): void {
     this.unlock();
     this.resetForm();
+    this.liveStatus.set('PROCESANDO');
+    this.live.set(false);
     this.created.set(document);
   }
 

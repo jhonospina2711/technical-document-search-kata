@@ -144,6 +144,21 @@ select:focus-visible {
   background: var(--warning-bg);
 }
 
+.badge--done {
+  color: var(--success);
+  border: 1px solid currentColor;
+}
+
+.badge--error {
+  color: var(--danger);
+  border: 1px solid currentColor;
+}
+
+.banner__note {
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+
 .badge svg {
   width: 14px;
   height: 14px;
