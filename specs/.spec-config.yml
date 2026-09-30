@@ -1,0 +1,4 @@
+specs_dir: specs
+file_pattern: "NN-slug.md"
+initial_status: Draft
+language: es

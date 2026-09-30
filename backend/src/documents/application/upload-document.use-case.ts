@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createDocument, DocumentFormat, DocumentStatus } from '../domain/document';
 import { DocumentRepository } from '../domain/document.repository';
-import { EmptyFileError } from '../domain/errors';
-import { baseName, formatOf } from './file-format';
+import { validateUploadedFile } from './file-validation';
 import { FileStore } from './ports';
 
 export interface UploadDocumentCommand {
@@ -26,11 +25,7 @@ export class UploadDocument {
   ) {}
 
   async execute({ metadata, file, ownerId }: UploadDocumentCommand): Promise<UploadReceipt> {
-    const fileName = baseName(file.originalName);
-    const fileFormat = formatOf(fileName);
-    if (file.content.length === 0) {
-      throw new EmptyFileError();
-    }
+    const { fileName, fileFormat } = validateUploadedFile(file);
 
     const document = await this.documents.add(createDocument({ ...metadata, fileName, fileFormat, ownerId }));
     try {

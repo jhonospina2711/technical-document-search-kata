@@ -53,6 +53,9 @@ Responsable de:
 - Metadatos.
 - Estado del procesamiento.
 - Publicación de eventos de procesamiento.
+- Validación del archivo recibido (solo TXT, PDF y Markdown; tamaño máximo configurable
+  con `UPLOAD_MAX_FILE_SIZE_BYTES`; contenido coherente con el formato) antes de
+  registrar el documento o publicar el evento.
 
 **Modelo `Document`** (tabla `documents` en PostgreSQL):
 
@@ -123,6 +126,7 @@ Responsable de la persistencia de:
 | Worker → RabbitMQ | AMQP | Consumo de mensajes |
 | Backend → PostgreSQL | SQL | Persistencia y búsqueda |
 | Worker → PostgreSQL | SQL | Actualización del documento e índice |
+| Backend → Worker | Volumen compartido (`UPLOAD_DIR`) | Entrega del archivo original, guardado con el `id` del documento como nombre |
 
 ## 6. Procesamiento asíncrono
 
@@ -131,6 +135,9 @@ mediante RabbitMQ y un Document Worker.
 
 El API no espera a que finalice el procesamiento para responder
 al usuario.
+
+El API guarda el archivo original en un volumen compartido bajo el `id` del documento y
+el mensaje de RabbitMQ solo lleva ese `id`; el Worker lo lee y lo elimina al terminar.
 
 ## 7. Persistencia y búsqueda
 

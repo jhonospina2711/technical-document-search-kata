@@ -5,7 +5,7 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-4" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;" value="" vertex="1">
-          <mxGeometry height="237" width="1120" x="95" y="459" as="geometry" />
+          <mxGeometry height="255" width="1120" x="95" y="459" as="geometry" />
         </mxCell>
         <mxCell id="nhdX6Im8cPlO2sISbFKw-26" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;fillColor=light-dark(#DAE8FC,#C5DCE8);dashed=1;" value="" vertex="1">
           <mxGeometry height="240" width="1143" x="72" y="117" as="geometry" />
@@ -37,8 +37,8 @@
         <mxCell id="nhdX6Im8cPlO2sISbFKw-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;REST (HTTPS)&lt;br&gt;+ Bearer JWT&lt;/span&gt;" vertex="1">
           <mxGeometry height="30" width="99" x="266" y="369" as="geometry" />
         </mxCell>
-        <mxCell id="nhdX6Im8cPlO2sISbFKw-15" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Documents Module&lt;/b&gt;&lt;/span&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;&amp;nbsp;&lt;br&gt;- &lt;/b&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;Gestión de documentos&lt;br&gt;-Metadata&lt;br&gt;-Estado de procesamiento&lt;br&gt;- Publicación de eventos&lt;/span&gt;" vertex="1">
-          <mxGeometry height="90" width="180" x="167" y="558" as="geometry" />
+        <mxCell id="nhdX6Im8cPlO2sISbFKw-15" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Documents Module&lt;/b&gt;&lt;/span&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;&amp;nbsp;&lt;br&gt;- &lt;/b&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;Gestión de documentos&lt;br&gt;-Metadata&lt;br&gt;-Estado de procesamiento&lt;br&gt;- Publicación de eventos&lt;br&gt;- Validación de archivos&lt;/span&gt;" vertex="1">
+          <mxGeometry height="108" width="180" x="167" y="558" as="geometry" />
         </mxCell>
         <mxCell id="nhdX6Im8cPlO2sISbFKw-16" parent="nhdX6Im8cPlO2sISbFKw-15" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
           <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
@@ -227,10 +227,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-33" parent="1" style="ellipse;html=1;fontSize=11;align=center;fillColor=light-dark(#FFFFFF,#FFFFFF);points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;strokeColor=light-dark(#000000,#000000);fillStyle=solid;" value="" vertex="1">
-          <mxGeometry height="8" width="8" x="253" y="681" as="geometry" />
+          <mxGeometry height="8" width="8" x="253" y="699" as="geometry" />
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-34" parent="1" style="html=1;rounded=0;fillColor=light-dark(#000000,#000001);strokeColor=light-dark(#000000,#000000);" value="" vertex="1">
-          <mxGeometry height="8" width="8" x="253" y="648" as="geometry" />
+          <mxGeometry height="8" width="8" x="253" y="666" as="geometry" />
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-35" edge="1" parent="1" source="VXOCUtF4EI4AEpHX8tc7-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.501;entryY=-0.079;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;strokeColor=light-dark(#000000,#000000);" target="VXOCUtF4EI4AEpHX8tc7-33">
           <mxGeometry relative="1" as="geometry">
@@ -238,7 +238,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=2" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;IDocumentEvent&lt;/span&gt;Publisher" vertex="1">
-          <mxGeometry height="30" width="116" x="284" y="666" as="geometry" />
+          <mxGeometry height="30" width="116" x="284" y="684" as="geometry" />
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-37" edge="1" parent="1" source="nhdX6Im8cPlO2sISbFKw-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.1;entryY=0.011;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;" target="nhdX6Im8cPlO2sISbFKw-19">
           <mxGeometry relative="1" as="geometry">
@@ -408,6 +408,44 @@
         </mxCell>
         <mxCell id="AUTH-sql-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=10;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;SQL (TypeORM)&lt;/span&gt;" vertex="1">
           <mxGeometry height="14" width="110" x="925" y="697" as="geometry" />
+        </mxCell>
+        <mxCell id="STORE-pkg" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;align=left;fillColor=#ffe6cc;strokeColor=#d79b00;dashed=1;" value="" vertex="1">
+          <mxGeometry height="178" width="182" x="486" y="767" as="geometry" />
+        </mxCell>
+        <mxCell id="STORE-pkg-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;font-weight: 700;&quot;&gt;&amp;lt;&amp;lt;package&amp;gt;&amp;gt;&lt;br&gt;Almacenamiento&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="159" x="486" y="783" as="geometry" />
+        </mxCell>
+        <mxCell id="STORE-comp" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;div&gt;«storage»&lt;/div&gt;&lt;div&gt;&lt;b&gt;Volumen compartido&lt;/b&gt;&lt;br&gt;UPLOAD_DIR/&amp;lt;id&amp;gt;&lt;br&gt;Archivo original de cada carga&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="152" x="501" y="828" as="geometry" />
+        </mxCell>
+        <mxCell id="STORE-comp-mod" parent="STORE-comp" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+          <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+            <mxPoint x="-27" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="STORE-e1" edge="1" parent="1" source="nhdX6Im8cPlO2sISbFKw-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="STORE-comp">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="655" />
+              <mxPoint x="410" y="740" />
+              <mxPoint x="615" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="STORE-e1-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="FS (escribe &amp;lt;id&amp;gt;)" vertex="1">
+          <mxGeometry height="22" width="125" x="472" y="743" as="geometry" />
+        </mxCell>
+        <mxCell id="STORE-e2" edge="1" parent="1" source="STORE-comp" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.9;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.897;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="VXOCUtF4EI4AEpHX8tc7-29">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="478" y="918" />
+              <mxPoint x="478" y="1010" />
+              <mxPoint x="330" y="1010" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="STORE-e2-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="FS (lee y elimina &amp;lt;id&amp;gt;)" vertex="1">
+          <mxGeometry height="22" width="128" x="350" y="1013" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

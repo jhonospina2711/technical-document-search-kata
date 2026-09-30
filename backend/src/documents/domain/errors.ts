@@ -17,3 +17,15 @@ export class EmptyFileError extends Error {
     super('El archivo está vacío');
   }
 }
+
+export class InvalidFileContentError extends Error {
+  constructor(format: string) {
+    super(`El contenido del archivo no corresponde al formato ${format}`);
+  }
+}
+
+export class InvalidFileNameError extends Error {
+  constructor() {
+    super('Nombre de archivo inválido');
+  }
+}

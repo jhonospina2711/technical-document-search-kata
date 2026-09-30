@@ -1,7 +1,11 @@
 import { Document, DocumentFormat, DocumentStatus, NewDocument } from '../domain/document';
 import { DocumentRepository } from '../domain/document.repository';
-import { EmptyFileError, UnsupportedFileFormatError } from '../domain/errors';
-import { baseName, formatOf } from './file-format';
+import {
+  EmptyFileError,
+  InvalidFileContentError,
+  InvalidFileNameError,
+  UnsupportedFileFormatError,
+} from '../domain/errors';
 import { FileStore } from './ports';
 import { UploadDocument } from './upload-document.use-case';
 
@@ -81,26 +85,23 @@ describe('UploadDocument', () => {
     expect(documents.rows.size).toBe(0);
   });
 
+  it('rechaza contenido que no corresponde al formato sin crear nada (AC-06, AC-11)', async () => {
+    await expect(useCase.execute(command('a.pdf', Buffer.from('solo texto')))).rejects.toThrow(InvalidFileContentError);
+    await expect(useCase.execute(command('a.txt', Buffer.from([0x68, 0x00])))).rejects.toThrow(InvalidFileContentError);
+    expect(documents.rows.size).toBe(0);
+    expect(files.saved.size).toBe(0);
+  });
+
+  it('rechaza nombres inválidos sin crear nada (AC-08, AC-11)', async () => {
+    await expect(useCase.execute(command(`${'a'.repeat(256)}.md`))).rejects.toThrow(InvalidFileNameError);
+    expect(documents.rows.size).toBe(0);
+    expect(files.saved.size).toBe(0);
+  });
+
   it('elimina el registro si no puede guardar el archivo', async () => {
     files.failWith = new Error('disco lleno');
 
-    await expect(useCase.execute(command('a.pdf'))).rejects.toThrow('disco lleno');
+    await expect(useCase.execute(command('a.pdf', Buffer.from('%PDF-1.7')))).rejects.toThrow('disco lleno');
     expect(documents.rows.size).toBe(0);
-  });
-});
-
-describe('formatOf / baseName', () => {
-  it.each([
-    ['a.txt', DocumentFormat.TXT],
-    ['A.PDF', DocumentFormat.PDF],
-    ['notas.v2.Md', DocumentFormat.MD],
-  ])('deduce el formato de %s', (name, format) => {
-    expect(formatOf(name)).toBe(format);
-  });
-
-  it('extrae el nombre base con separadores de cualquier sistema', () => {
-    expect(baseName('a/b/c.md')).toBe('c.md');
-    expect(baseName('a\\b\\c.md')).toBe('c.md');
-    expect(baseName('c.md')).toBe('c.md');
   });
 });

@@ -1,6 +1,6 @@
 # SPEC-01 — Autenticación (Auth) backend + frontend
 
-**Status:** aprobado
+**Status:** inplementado
 **KATA:** Technical Document Search / Viewer
 **HU:** Transversal (protege HU-01, HU-02, HU-03 y HU-04). La kata no exige autenticación; se incluye por decisión del proyecto y se reutiliza desde `nest-gpt` (backend) y `authapp` (frontend).
 

@@ -19,6 +19,8 @@ Copiar `.env.example` a `.env` en la raíz (lo leen `docker-compose` y el backen
 | `JWT_EXPIRES_IN` | no (`6h`) | Duración del token (`30m`, `6h`, `1d`…) |
 | `PORT` | no (`3000`) | Puerto HTTP del backend |
 | `CORS_ORIGIN` | no (`http://localhost:4200`) | Único origen permitido por CORS |
+| `UPLOAD_DIR` | no (`./uploads`) | Directorio donde el API guarda el archivo original de cada carga (`<UPLOAD_DIR>/<id>`); lo comparte con el Document Worker |
+| `UPLOAD_MAX_FILE_SIZE_BYTES` | no (`10485760`, 10 MB) | Tamaño máximo del archivo subido, en bytes (entero positivo). Al superarlo el API responde `413` |
 
 ## Puesta en marcha
 
