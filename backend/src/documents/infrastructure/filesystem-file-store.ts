@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { FileStore } from '../application/ports';
 
@@ -17,5 +17,9 @@ export class FilesystemFileStore extends FileStore {
   async save(documentId: string, content: Buffer): Promise<void> {
     await mkdir(this.directory, { recursive: true });
     await writeFile(join(this.directory, documentId), content);
+  }
+
+  async remove(documentId: string): Promise<void> {
+    await rm(join(this.directory, documentId), { force: true });
   }
 }

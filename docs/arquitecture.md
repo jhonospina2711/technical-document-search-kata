@@ -136,6 +136,19 @@ mediante RabbitMQ y un Document Worker.
 El API no espera a que finalice el procesamiento para responder
 al usuario.
 
+Tras registrar el documento en `PROCESANDO` y guardar su archivo, el
+Documents Module publica un mensaje persistente `{ "documentId" }` en la
+cola `documents.process` de RabbitMQ y espera la confirmación del broker
+(publisher confirms, timeout de 5 s) antes de responder `202`. Si el
+broker no lo confirma, el documento y su archivo se eliminan y se
+responde `503`. La cola declara un dead-letter (`documents.dlx` →
+`documents.process.dlq`). El Document Worker consume con ACK manual,
+confirma solo tras dejar el documento en estado final y rechaza con
+`nack(requeue=false)` ante un fallo, para que el mensaje vaya a la DLQ.
+La entrega es *at-least-once*. Riesgo conocido: una caída del API entre
+la persistencia y la confirmación puede dejar un documento en
+`PROCESANDO` sin mensaje (sin outbox).
+
 El API guarda el archivo original en un volumen compartido bajo el `id` del documento y
 el mensaje de RabbitMQ solo lleva ese `id`; el Worker lo lee y lo elimina al terminar.
 

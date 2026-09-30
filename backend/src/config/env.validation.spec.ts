@@ -6,6 +6,7 @@ const base = {
   POSTGRES_USER: 'u',
   POSTGRES_PASSWORD: 'p',
   POSTGRES_DB: 'db',
+  RABBITMQ_URL: 'amqp://u:p@localhost:5672',
 };
 
 describe('validateEnv', () => {
@@ -41,6 +42,13 @@ describe('validateEnv', () => {
     });
     expect(() => validateEnv({ ...base, UPLOAD_MAX_FILE_SIZE_BYTES: '-1' })).toThrow('UPLOAD_MAX_FILE_SIZE_BYTES');
     expect(() => validateEnv({ ...base, UPLOAD_MAX_FILE_SIZE_BYTES: 'grande' })).toThrow('UPLOAD_MAX_FILE_SIZE_BYTES');
+  });
+
+  it('falla si falta RABBITMQ_URL (sin valor por defecto)', () => {
+    const { RABBITMQ_URL: _omitted, ...withoutUrl } = base;
+
+    expect(() => validateEnv(withoutUrl)).toThrow('RABBITMQ_URL');
+    expect(() => validateEnv({ ...base, RABBITMQ_URL: '' })).toThrow('RABBITMQ_URL');
   });
 
   it('falla si JWT_EXPIRES_IN no es una duración válida', () => {

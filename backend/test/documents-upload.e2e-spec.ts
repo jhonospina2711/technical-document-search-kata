@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { configureApp } from '../src/app.setup';
+import { DocumentEventPublisher } from '../src/documents/application/ports';
 import { postgresConnection } from '../src/database/postgres-connection';
 
 config({ path: ['.env', '../.env'] });
@@ -64,7 +65,12 @@ describe('POST /documents (PostgreSQL real)', () => {
     });
     // Import diferido: `ConfigModule.forRoot` lee el entorno al cargar el módulo.
     const { AppModule } = await import('../src/app.module');
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    // Aquí se prueba la carga y su validación, no el broker (ver documents-publish.e2e-spec.ts):
+    // sin este doble cada carga válida dejaría un mensaje huérfano en la cola real.
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(DocumentEventPublisher)
+      .useValue({ publishUploaded: async () => undefined })
+      .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
     await app.init();

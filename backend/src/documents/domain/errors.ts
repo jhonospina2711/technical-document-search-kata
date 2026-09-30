@@ -24,6 +24,12 @@ export class InvalidFileContentError extends Error {
   }
 }
 
+export class EventPublishError extends Error {
+  constructor(options?: { cause?: unknown }) {
+    super('No se pudo publicar el evento de procesamiento', options);
+  }
+}
+
 export class InvalidFileNameError extends Error {
   constructor() {
     super('Nombre de archivo inválido');

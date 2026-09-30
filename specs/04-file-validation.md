@@ -1,6 +1,6 @@
 # SPEC-04 — Validación de archivos
 
-**Status:** Aprobado
+**Status:** Inplementado
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-01 — Carga de documentos (Jira KTL-1)
 **Tarea Jira:** KTL-7 — E1-01-BE-03 — Validación de archivos

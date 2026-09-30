@@ -6,12 +6,14 @@ import {
   HttpException,
   Logger,
   PayloadTooLargeException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { requestIdOf } from '../../common/request-id';
 import {
   EmptyFileError,
+  EventPublishError,
   InvalidFileContentError,
   InvalidFileNameError,
   UnsupportedFileFormatError,
@@ -21,14 +23,16 @@ type UploadDomainError =
   | UnsupportedFileFormatError
   | EmptyFileError
   | InvalidFileContentError
-  | InvalidFileNameError;
+  | InvalidFileNameError
+  | EventPublishError;
 
 // Multer no expone mensajes estables entre versiones ("Unexpected field" → "Unexpected file field").
 const MULTER_FILE_COUNT_MESSAGE = /^(Too many files|Unexpected (file )?field)/i;
 
 /**
  * Traduce a mensajes claros en español los rechazos de la carga: errores de dominio (`400`) y
- * errores de multer (`413` por tamaño, `400` por más de un archivo o campo inesperado).
+ * errores de multer (`413` por tamaño, `400` por más de un archivo o campo inesperado). Si el broker
+ * no confirmó el evento responde `503` sin detalles internos.
  * Cualquier otra `HttpException` (p. ej. validación del DTO) se devuelve tal cual.
  */
 @Catch(
@@ -36,6 +40,7 @@ const MULTER_FILE_COUNT_MESSAGE = /^(Too many files|Unexpected (file )?field)/i;
   EmptyFileError,
   InvalidFileContentError,
   InvalidFileNameError,
+  EventPublishError,
   PayloadTooLargeException,
   BadRequestException,
 )
@@ -46,12 +51,15 @@ export class DocumentsExceptionFilter implements ExceptionFilter {
 
   catch(error: UploadDomainError | HttpException, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    this.logger.warn(`[${requestIdOf(http.getRequest<Request>())}] carga rechazada: ${error.constructor.name}`);
+    this.logger.warn(`[${requestIdOf(http.getRequest<Request>())}] carga no completada: ${error.constructor.name}`);
     const exception = this.toHttpException(error);
     http.getResponse<Response>().status(exception.getStatus()).json(exception.getResponse());
   }
 
   private toHttpException(error: UploadDomainError | HttpException): HttpException {
+    if (error instanceof EventPublishError) {
+      return new ServiceUnavailableException('Servicio no disponible, intenta de nuevo');
+    }
     if (error instanceof PayloadTooLargeException) {
       const limit = formatBytes(this.config.getOrThrow<number>('UPLOAD_MAX_FILE_SIZE_BYTES'));
       return new PayloadTooLargeException(`El archivo supera el tamaño máximo permitido (${limit})`);

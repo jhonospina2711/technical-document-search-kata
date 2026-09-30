@@ -1,12 +1,14 @@
 import { Document, DocumentFormat, DocumentStatus, NewDocument } from '../domain/document';
 import { DocumentRepository } from '../domain/document.repository';
+import { Logger } from '@nestjs/common';
 import {
   EmptyFileError,
+  EventPublishError,
   InvalidFileContentError,
   InvalidFileNameError,
   UnsupportedFileFormatError,
 } from '../domain/errors';
-import { FileStore } from './ports';
+import { DocumentEventPublisher, FileStore } from './ports';
 import { UploadDocument } from './upload-document.use-case';
 
 class InMemoryDocuments extends DocumentRepository {
@@ -26,10 +28,26 @@ class InMemoryDocuments extends DocumentRepository {
 class InMemoryFiles extends FileStore {
   readonly saved = new Map<string, Buffer>();
   failWith?: Error;
+  removeFailWith?: Error;
 
   async save(documentId: string, content: Buffer): Promise<void> {
     if (this.failWith) throw this.failWith;
     this.saved.set(documentId, content);
+  }
+
+  async remove(documentId: string): Promise<void> {
+    if (this.removeFailWith) throw this.removeFailWith;
+    this.saved.delete(documentId);
+  }
+}
+
+class RecordingEvents extends DocumentEventPublisher {
+  readonly published: string[] = [];
+  failWith?: Error;
+
+  async publishUploaded(documentId: string): Promise<void> {
+    if (this.failWith) throw this.failWith;
+    this.published.push(documentId);
   }
 }
 
@@ -43,12 +61,14 @@ const command = (originalName: string, content = Buffer.from('hola')) => ({
 describe('UploadDocument', () => {
   let documents: InMemoryDocuments;
   let files: InMemoryFiles;
+  let events: RecordingEvents;
   let useCase: UploadDocument;
 
   beforeEach(() => {
     documents = new InMemoryDocuments();
     files = new InMemoryFiles();
-    useCase = new UploadDocument(documents, files);
+    events = new RecordingEvents();
+    useCase = new UploadDocument(documents, files, events);
   });
 
   it('registra el documento en PROCESANDO, guarda el archivo y devuelve id y estado (AC-01)', async () => {
@@ -64,6 +84,7 @@ describe('UploadDocument', () => {
       ownerId: 'user-1',
     });
     expect(files.saved.get('id-1')?.toString()).toBe('hola');
+    expect(events.published).toEqual(['id-1']);
   });
 
   it('guarda solo el nombre base del archivo (AC-09)', async () => {
@@ -78,6 +99,7 @@ describe('UploadDocument', () => {
     await expect(useCase.execute(command('sin-extension'))).rejects.toThrow(UnsupportedFileFormatError);
     expect(documents.rows.size).toBe(0);
     expect(files.saved.size).toBe(0);
+    expect(events.published).toEqual([]);
   });
 
   it('rechaza archivos vacíos sin crear nada', async () => {
@@ -98,10 +120,38 @@ describe('UploadDocument', () => {
     expect(files.saved.size).toBe(0);
   });
 
-  it('elimina el registro si no puede guardar el archivo', async () => {
+  it('elimina el registro y no publica si no puede guardar el archivo (AC-07)', async () => {
     files.failWith = new Error('disco lleno');
 
     await expect(useCase.execute(command('a.pdf', Buffer.from('%PDF-1.7')))).rejects.toThrow('disco lleno');
     expect(documents.rows.size).toBe(0);
+    expect(events.published).toEqual([]);
+  });
+
+  describe('si falla la publicación del evento', () => {
+    let errorLog: jest.SpyInstance;
+
+    beforeEach(() => {
+      errorLog = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+      events.failWith = new EventPublishError();
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('elimina la fila y el archivo y relanza el error (AC-03)', async () => {
+      await expect(useCase.execute(command('guia.md'))).rejects.toThrow(EventPublishError);
+
+      expect(documents.rows.size).toBe(0);
+      expect(files.saved.size).toBe(0);
+    });
+
+    it('no oculta el error original si la compensación también falla (AC-05)', async () => {
+      files.removeFailWith = new Error('permiso denegado');
+
+      await expect(useCase.execute(command('guia.md'))).rejects.toThrow(EventPublishError);
+
+      expect(documents.rows.size).toBe(0); // el otro paso de la compensación se intentó igualmente
+      expect(errorLog).toHaveBeenCalledWith(expect.stringContaining('permiso denegado'));
+    });
   });
 });

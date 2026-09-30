@@ -1,11 +1,11 @@
 # SPEC-05 — Publicar evento RabbitMQ
 
-**Status:** Draft
+**Status:** Implementado
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-01 — Carga de documentos (Jira KTL-1)
 **Tarea Jira:** KTL-9 — E1-01-MQ-01 — Publicar evento RabbitMQ
 **Fecha:** 2026-09-30
-**Depende de:** SPEC-03 (KTL-6, Approved, ya implementado). SPEC-04 (KTL-7, Aprobado, sin commit) modifica el mismo `DocumentsExceptionFilter` y `UploadDocument`: implementar después de SPEC-04 o integrar ambos cambios sin pisarse.
+**Depende de:** SPEC-03 (KTL-6, Approved, ya implementado) y SPEC-04 (KTL-7, Aprobado). **Orden obligatorio (decidido por el usuario):** SPEC-04 debe quedar finalizada e implementada antes de iniciar SPEC-05, porque ambas modifican `UploadDocument` y `DocumentsExceptionFilter`. SPEC-05 se integra sobre la implementación existente de SPEC-04, sin sobrescribirla ni rehacer su lógica.
 
 ## 1. Objective
 Tras registrar el documento en `PROCESANDO` y dejar su archivo en `UPLOAD_DIR`, `POST /documents` publica un mensaje en RabbitMQ con el `documentId` para que el Document Worker (KTL-10/11) lo procese de forma asíncrona. El API no ejecuta extracción alguna. La publicación es confirmada por el broker (publisher confirms) y un fallo nunca deja un documento huérfano en `PROCESANDO`: se compensa y se responde `503`. La cola declara un dead-letter para que un error del consumidor no pierda el mensaje en silencio.

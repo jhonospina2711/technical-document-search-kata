@@ -17,6 +17,7 @@ Object.assign(process.env, {
   POSTGRES_USER: 'unused',
   POSTGRES_PASSWORD: 'unused',
   POSTGRES_DB: 'unused',
+  RABBITMQ_URL: 'amqp://unused',
 });
 
 describe('Auth (flujo completo, sin PostgreSQL)', () => {

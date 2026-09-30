@@ -50,4 +50,13 @@ describe('FilesystemFileStore', () => {
 
     expect((await readFile(join(directory, 'doc-1'))).toString()).toBe('contenido');
   });
+
+  it('elimina el archivo y no falla si ya no existe', async () => {
+    const store = new FilesystemFileStore({ getOrThrow: () => directory } as unknown as ConfigService);
+    await store.save('doc-1', Buffer.from('contenido'));
+
+    await store.remove('doc-1');
+    await expect(readFile(join(directory, 'doc-1'))).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(store.remove('doc-1')).resolves.toBeUndefined();
+  });
 });

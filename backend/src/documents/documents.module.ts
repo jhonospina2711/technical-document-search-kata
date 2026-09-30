@@ -3,11 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { FileStore } from './application/ports';
+import { DocumentEventPublisher, FileStore } from './application/ports';
 import { UploadDocument } from './application/upload-document.use-case';
 import { DocumentRepository } from './domain/document.repository';
 import { DocumentOrmEntity } from './infrastructure/document.orm-entity';
 import { FilesystemFileStore } from './infrastructure/filesystem-file-store';
+import { RabbitMqDocumentEventPublisher } from './infrastructure/rabbitmq/rabbitmq-document-event-publisher';
 import { TypeOrmDocumentRepository } from './infrastructure/typeorm-document.repository';
 import { DocumentsController } from './presentation/documents.controller';
 
@@ -37,6 +38,7 @@ const FORM_FIELD_LIMITS = { fields: 10, fieldSize: 8 * 1024, parts: 12 };
   providers: [
     { provide: DocumentRepository, useClass: TypeOrmDocumentRepository },
     { provide: FileStore, useClass: FilesystemFileStore },
+    { provide: DocumentEventPublisher, useClass: RabbitMqDocumentEventPublisher },
     UploadDocument,
   ],
 })

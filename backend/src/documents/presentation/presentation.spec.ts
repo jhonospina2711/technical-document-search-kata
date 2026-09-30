@@ -6,6 +6,7 @@ import { UploadDocument } from '../application/upload-document.use-case';
 import { DocumentStatus } from '../domain/document';
 import {
   EmptyFileError,
+  EventPublishError,
   InvalidFileContentError,
   InvalidFileNameError,
   UnsupportedFileFormatError,
@@ -114,6 +115,18 @@ describe('DocumentsExceptionFilter', () => {
       });
     },
   );
+
+  it('responde 503 sin detalles internos si el broker no confirmó el evento (AC-03)', () => {
+    const { status, body } = respond(new EventPublishError({ cause: new Error('connect ECONNREFUSED amqp://u:secreta@rabbit') }));
+
+    expect(status).toBe(503);
+    expect(body).toEqual({
+      statusCode: 503,
+      message: 'Servicio no disponible, intenta de nuevo',
+      error: 'Service Unavailable',
+    });
+    expect(JSON.stringify(body)).not.toMatch(/secreta|rabbit|ECONNREFUSED/);
+  });
 
   it('deja pasar sin cambios otras respuestas 400 (validación del DTO, archivo ausente)', () => {
     expect(respond(new BadRequestException('Falta el archivo en el campo "file"'))).toEqual({

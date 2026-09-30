@@ -4,6 +4,7 @@ const REQUIRED = [
   'POSTGRES_USER',
   'POSTGRES_PASSWORD',
   'POSTGRES_DB',
+  'RABBITMQ_URL',
 ] as const;
 
 const DURATION = /^\d+(ms|s|m|h|d|w|y)?$/;
