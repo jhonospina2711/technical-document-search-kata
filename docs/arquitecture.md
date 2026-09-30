@@ -109,7 +109,7 @@ Proceso encargado de:
 - Construcción del índice `tsvector`.
 - Actualización del estado del documento.
 
-Consume `documents.process` con `ack` manual y `prefetch(1)`. Solo confirma el mensaje después de dejar el resultado en PostgreSQL (`PROCESADO` con `content`, o `ERROR`) mediante un único `UPDATE` condicionado a `status = 'PROCESANDO'`, lo que lo hace idempotente ante entregas repetidas. Los fallos deterministas (archivo ausente, contenido no válido, formato sin extractor) marcan el documento como `ERROR`; los transitorios se reintentan 3 veces y después el mensaje va a la DLQ `documents.process.dlq`, dejando el documento en `PROCESANDO` y su archivo en el volumen. Es un proceso independiente del API (`npm run start:worker`) que no necesita `JWT_SECRET`.
+Consume `documents.process` con `ack` manual y `prefetch(1)`. Solo confirma el mensaje después de dejar el resultado en PostgreSQL (`PROCESADO` con `content`, o `ERROR`) mediante un único `UPDATE` condicionado a `status = 'PROCESANDO'`, lo que lo hace idempotente ante entregas repetidas. Los fallos deterministas (archivo ausente, contenido no válido, formato sin extractor) marcan el documento como `ERROR`; los transitorios se reintentan 3 veces y después el mensaje va a la DLQ `documents.process.dlq`, dejando el documento en `PROCESANDO` y su archivo en el volumen. Es un proceso independiente del API (`npm run start:worker`) que no necesita `JWT_SECRET`. La extracción se hace por formato: TXT y MD como texto UTF-8, y PDF con `unpdf` (máximo 500 páginas). Un PDF cifrado, dañado, sin capa de texto o con más de 500 páginas deja el documento en `ERROR`; cualquier otro fallo inesperado se trata como transitorio (reintentos y DLQ).
 
 ### PostgreSQL
 
