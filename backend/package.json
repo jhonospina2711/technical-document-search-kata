@@ -8,6 +8,9 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
+    "start:worker": "nest start --entryFile worker/main",
+    "start:worker:dev": "nest start --watch --entryFile worker/main",
+    "start:worker:prod": "node dist/worker/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -67,6 +70,7 @@
     "collectCoverageFrom": [
       "**/*.ts",
       "!main.ts",
+      "!worker/main.ts",
       "!**/*.module.ts",
       "!database/**"
     ],

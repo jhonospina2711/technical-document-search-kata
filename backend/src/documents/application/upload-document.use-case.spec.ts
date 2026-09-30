@@ -35,6 +35,10 @@ class InMemoryFiles extends FileStore {
     this.saved.set(documentId, content);
   }
 
+  async read(documentId: string): Promise<Buffer | null> {
+    return this.saved.get(documentId) ?? null;
+  }
+
   async remove(documentId: string): Promise<void> {
     if (this.removeFailWith) throw this.removeFailWith;
     this.saved.delete(documentId);

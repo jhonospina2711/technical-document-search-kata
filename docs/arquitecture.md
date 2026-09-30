@@ -104,6 +104,8 @@ Proceso encargado de:
 - Construcción del índice `tsvector`.
 - Actualización del estado del documento.
 
+Consume `documents.process` con `ack` manual y `prefetch(1)`. Solo confirma el mensaje después de dejar el resultado en PostgreSQL (`PROCESADO` con `content`, o `ERROR`) mediante un único `UPDATE` condicionado a `status = 'PROCESANDO'`, lo que lo hace idempotente ante entregas repetidas. Los fallos deterministas (archivo ausente, contenido no válido, formato sin extractor) marcan el documento como `ERROR`; los transitorios se reintentan 3 veces y después el mensaje va a la DLQ `documents.process.dlq`, dejando el documento en `PROCESANDO` y su archivo en el volumen. Es un proceso independiente del API (`npm run start:worker`) que no necesita `JWT_SECRET`.
+
 ### PostgreSQL
 
 Responsable de la persistencia de:

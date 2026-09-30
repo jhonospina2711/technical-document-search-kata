@@ -21,7 +21,9 @@ Copiar `.env.example` a `.env` en la raíz (lo leen `docker-compose` y el backen
 | `JWT_EXPIRES_IN` | no (`6h`) | Duración del token (`30m`, `6h`, `1d`…) |
 | `PORT` | no (`3000`) | Puerto HTTP del backend |
 | `CORS_ORIGIN` | no (`http://localhost:4200`) | Único origen permitido por CORS |
-| `UPLOAD_DIR` | no (`./uploads`) | Directorio donde el API guarda el archivo original de cada carga (`<UPLOAD_DIR>/<id>`); lo comparte con el Document Worker |
+| `RABBITMQ_URL` | sí | URL AMQP del broker (`amqp://usuario:clave@host:5672`). La usan el API y el Worker |
+| `RABBITMQ_USER`, `RABBITMQ_PASSWORD` | sí (docker-compose) | Credenciales con las que `docker-compose` crea el broker; deben coincidir con las de `RABBITMQ_URL` |
+| `UPLOAD_DIR` | no (`./uploads`) | Directorio donde el API guarda el archivo original de cada carga (`<UPLOAD_DIR>/<id>`). **El Document Worker debe usar el mismo directorio**: lo lee de ahí y lo elimina al terminar |
 | `UPLOAD_MAX_FILE_SIZE_BYTES` | no (`10485760`, 10 MB) | Tamaño máximo del archivo subido, en bytes (entero positivo). Al superarlo el API responde `413` |
 
 ## Puesta en marcha
@@ -31,7 +33,8 @@ docker compose up -d db rabbitmq   # PostgreSQL y RabbitMQ con healthcheck
 cd backend
 npm install
 npm run migration:run            # crea el esquema (synchronize está desactivado)
-npm run start:dev                # http://localhost:3000
+npm run start:dev                # API en http://localhost:3000
+npm run start:worker             # Document Worker (otra terminal, mismo UPLOAD_DIR)
 
 cd ../frontend
 npm install
@@ -47,7 +50,8 @@ npm start                        # http://localhost:4200
 | Tests unitarios | `npm test` | `npm run test:ci` |
 | Un solo test | `npx jest -t "nombre"` / `npx jest ruta.spec.ts` | `npx ng test --include='**/ruta.spec.ts'` |
 | Cobertura | `npm run test:cov` | `npm run test:ci` (incluye cobertura) |
-| Integración | `npm run test:e2e` (auth en memoria; documents con PostgreSQL y RabbitMQ reales de `docker compose`, se omiten si no están disponibles) | — |
+| Integración | `npm run test:e2e` (auth en memoria; documents con PostgreSQL y RabbitMQ reales de `docker compose`, se omiten si no están disponibles; detener antes el Worker de desarrollo, porque las pruebas purgan `documents.process`) | — |
+| Worker | `npm run start:worker` / `start:worker:dev` / `start:worker:prod` | — |
 | Migraciones | `npm run migration:run` / `migration:revert` | — |
 
 ## Autenticación
@@ -78,3 +82,14 @@ El frontend guarda el token en `localStorage`, por lo que queda expuesto ante XS
 Contrato para el consumidor (Document Worker): consumir con ACK manual, hacer `ack` solo tras dejar el documento en estado final, `nack(requeue=false)` ante un fallo para que el mensaje vaya a la DLQ, y descartar con `ack` los mensajes cuyo documento no exista. La entrega es *at-least-once*: el procesamiento debe ser idempotente.
 
 Riesgo conocido: si el proceso del API cae entre guardar el documento y recibir la confirmación del broker, puede quedar un documento en `PROCESANDO` sin mensaje (no hay outbox).
+
+## Document Worker
+
+Proceso aparte del API (`backend/src/worker`) que consume la cola `documents.process` de RabbitMQ: lee `<UPLOAD_DIR>/<id>`, extrae y normaliza el texto y deja el documento en `PROCESADO` (con `content`) o `ERROR`. Necesita `POSTGRES_*`, `RABBITMQ_URL` y `UPLOAD_DIR`; no necesita `JWT_SECRET`.
+
+- **Formatos:** TXT y MD. Un PDF queda en `ERROR` hasta que exista el extractor PDF (KTL-11).
+- **Errores deterministas** (archivo ausente, UTF-8 inválido, sin texto, PDF): el documento pasa a `ERROR` y el mensaje se confirma (`ack`).
+- **Errores transitorios** (base de datos, disco): 3 intentos con 2 s de espera; si persisten, `nack` sin reencolar y el mensaje va a `documents.process.dlq`. El documento sigue en `PROCESANDO` y el archivo se conserva para reprocesarlo.
+- **Mensajes malformados** van directamente a la DLQ.
+- Es idempotente ante entregas repetidas y reconecta solo si RabbitMQ se cae. Con SIGINT/SIGTERM termina el mensaje en curso antes de salir.
+- Revisar la DLQ: consola de RabbitMQ (`http://localhost:15672`) → cola `documents.process.dlq`.

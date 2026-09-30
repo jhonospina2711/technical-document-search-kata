@@ -4,6 +4,7 @@ import { connect } from 'amqplib';
 import type { ChannelModel, ConfirmChannel } from 'amqplib';
 import { DocumentEventPublisher } from '../../application/ports';
 import { EventPublishError } from '../../domain/errors';
+import { sanitizeError } from './sanitize';
 import { assertTopology, DOCUMENTS_QUEUE } from './topology';
 
 /** Tiempo máximo para conectar, publicar y recibir la confirmación del broker. */
@@ -45,7 +46,7 @@ export class RabbitMqDocumentEventPublisher extends DocumentEventPublisher imple
     } catch (error) {
       // Tras un fallo no se sabe en qué estado quedó el canal: se descarta y se reabre en la próxima.
       this.discard(session);
-      this.logger.error(`fallo al publicar el evento de ${documentId}: ${describe(error)}`);
+      this.logger.error(`fallo al publicar el evento de ${documentId}: ${sanitizeError(error)}`);
       throw new EventPublishError({ cause: error });
     } finally {
       clearTimeout(timer);
@@ -111,10 +112,4 @@ export class RabbitMqDocumentEventPublisher extends DocumentEventPublisher imple
     }
     void pending.then((opened) => opened.connection.close()).catch(() => undefined);
   }
-}
-
-/** Mensaje del error sin credenciales: amqplib puede incluir la URL con usuario y clave. */
-function describe(error: unknown): string {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.replace(/\/\/[^@/\s]*@/g, '//***@');
 }
