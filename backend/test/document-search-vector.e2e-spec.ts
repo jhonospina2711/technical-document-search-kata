@@ -190,6 +190,7 @@ describe('search_vector de documents (PostgreSQL real)', () => {
   );
 
   run('AC-08 y AC-09: down/up de la migración, con backfill de filas previas', async () => {
+    await db.undoLastMigration(); // índice GIN (KTL-15), posterior a search_vector
     await db.undoLastMigration();
     const [gone] = await db.query(
       `SELECT count(*)::int AS n FROM information_schema.columns WHERE table_name = 'documents' AND column_name = 'search_vector'`,
