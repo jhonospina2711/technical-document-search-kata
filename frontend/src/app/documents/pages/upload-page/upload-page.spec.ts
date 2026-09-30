@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
+import { DocumentStatusTracker, TrackedStatus } from '../../services/document-status-tracker';
 import { FileDropzone } from '../../components/file-dropzone/file-dropzone';
 import { DOCUMENT_CATEGORIES } from '../../constants/document-categories';
 import { DocumentsService, UploadEvent, UploadFailure } from '../../services/documents.service';
@@ -13,6 +14,8 @@ describe('UploadPage', () => {
   let upload$: Subject<UploadEvent>;
   let documents: { upload: jasmine.Spy };
   let router: Router;
+  let tracker: { track: jasmine.Spy };
+  let tracked: Subject<TrackedStatus>[];
 
   const text = () => host.textContent!.replace(/\s+/g, ' ');
   const query = <T extends HTMLElement>(selector: string) => host.querySelector<T>(selector)!;
@@ -66,8 +69,20 @@ describe('UploadPage', () => {
   beforeEach(() => {
     upload$ = new Subject<UploadEvent>();
     documents = { upload: jasmine.createSpy('upload').and.callFake(() => upload$) };
+    tracked = [];
+    tracker = {
+      track: jasmine.createSpy('track').and.callFake(() => {
+        const updates = new Subject<TrackedStatus>();
+        tracked.push(updates);
+        return updates;
+      }),
+    };
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: DocumentsService, useValue: documents }],
+      providers: [
+        provideRouter([]),
+        { provide: DocumentsService, useValue: documents },
+        { provide: DocumentStatusTracker, useValue: tracker },
+      ],
     });
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(UploadPage);
@@ -438,6 +453,102 @@ describe('UploadPage', () => {
       expect(query<HTMLInputElement>('#doc-title').value).toBe('');
       expect(chips()).toEqual([]);
       expect(text()).toContain('Sin adjuntar');
+    });
+  });
+
+  describe('seguimiento en vivo del documento creado', () => {
+    function uploadDocument(id = 'doc-123'): void {
+      readyToSubmit();
+      submitButton().click();
+      upload$.next({ type: 'done', document: { id, status: 'PROCESANDO' } });
+      fixture.detectChanges();
+    }
+
+    it('sigue el documento creado con el tracker y muestra la nota de reconexión mientras no hay conexión', () => {
+      uploadDocument();
+
+      expect(tracker.track).toHaveBeenCalledOnceWith('doc-123');
+      tracked[0].next({ status: 'PROCESANDO', live: false });
+      fixture.detectChanges();
+      expect(text()).toContain('Reconectando con el servidor');
+
+      tracked[0].next({ status: 'PROCESANDO', live: true });
+      fixture.detectChanges();
+      expect(text()).not.toContain('Reconectando');
+      expect(query('.badge').textContent).toContain('PROCESANDO');
+    });
+
+    it('pasa a "Documento procesado" al recibir PROCESADO, sin refrescar (AC-01)', () => {
+      uploadDocument();
+      tracked[0].next({ status: 'PROCESADO', live: false });
+      fixture.detectChanges();
+
+      const banner = query('.banner--success');
+      expect(banner.getAttribute('role')).toBe('status');
+      expect(banner.textContent).toContain('Documento procesado');
+      expect(banner.textContent).toContain('ya está indexado y disponible en la búsqueda');
+      expect(query('.badge').textContent).toContain('PROCESADO');
+      expect(query('.badge').classList).toContain('badge--done');
+      expect(banner.querySelector('.spin')).toBeNull();
+      expect(text()).not.toContain('Reconectando');
+      expect(query('.banner code').textContent).toBe('doc-123');
+    });
+
+    it('pasa al banner de error al recibir ERROR (AC-02)', () => {
+      uploadDocument();
+      tracked[0].next({ status: 'ERROR', live: false });
+      fixture.detectChanges();
+
+      const banner = query('.banner--error');
+      expect(banner.getAttribute('role')).toBe('alert');
+      expect(banner.textContent).toContain('No se pudo procesar el documento');
+      expect(banner.textContent).toContain('PDF cifrado, dañado o sin texto');
+      expect(query('.badge').textContent).toContain('ERROR');
+      expect(host.querySelector('.banner--success')).toBeNull();
+    });
+
+    it('cerrar el banner cancela el seguimiento (AC-07)', () => {
+      uploadDocument();
+      expect(tracked[0].observed).toBeTrue();
+
+      query<HTMLButtonElement>('.banner .banner__close').click();
+      fixture.detectChanges();
+
+      expect(tracked[0].observed).toBeFalse();
+    });
+
+    it('subir otro documento cancela el seguimiento anterior y empieza desde PROCESANDO (AC-07)', () => {
+      uploadDocument('doc-1');
+      tracked[0].next({ status: 'PROCESADO', live: false });
+      fixture.detectChanges();
+
+      upload$ = new Subject<UploadEvent>();
+      readyToSubmit();
+      submitButton().click();
+      fixture.detectChanges();
+      expect(tracked[0].observed).toBeFalse();
+
+      upload$.next({ type: 'done', document: { id: 'doc-2', status: 'PROCESANDO' } });
+      fixture.detectChanges();
+
+      expect(tracker.track).toHaveBeenCalledWith('doc-2');
+      expect(query('.badge').textContent).toContain('PROCESANDO');
+      expect(query('.banner code').textContent).toBe('doc-2');
+    });
+
+    it('destruir la página cancela el seguimiento (AC-07)', () => {
+      uploadDocument();
+      fixture.destroy();
+
+      expect(tracked[0].observed).toBeFalse();
+    });
+
+    it('un error del seguimiento deja el banner en PROCESANDO sin romper la página', () => {
+      uploadDocument();
+      tracked[0].error(new Error('Sin sesión activa'));
+      fixture.detectChanges();
+
+      expect(query('.badge').textContent).toContain('PROCESANDO');
     });
   });
 });

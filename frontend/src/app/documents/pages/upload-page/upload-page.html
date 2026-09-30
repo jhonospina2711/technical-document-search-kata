@@ -9,24 +9,59 @@
     <p class="subtitle">Sube un archivo técnico y completa su información para indexarlo.</p>
 
     @if (created(); as document) {
-      <div class="banner banner--success" role="status">
-        <div class="banner__body">
-          <p class="banner__title">Documento recibido exitosamente</p>
-          <p>
-            El archivo fue encolado para su procesamiento con el identificador
-            <code class="mono">{{ document.id }}</code>.
-          </p>
-          <span class="badge badge--processing">
-            <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3a9 9 0 1 0 9 9" />
-            </svg>
-            {{ document.status }}
-          </span>
+      @if (liveStatus() === 'ERROR') {
+        <div class="banner banner--error" role="alert">
+          <div class="banner__body">
+            <p class="banner__title">No se pudo procesar el documento</p>
+            <p>
+              El archivo no pudo procesarse (por ejemplo, PDF cifrado, dañado o sin texto). Sube otro archivo.
+              Identificador: <code class="mono">{{ document.id }}</code>.
+            </p>
+            <span class="badge badge--error">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+              {{ liveStatus() }}
+            </span>
+          </div>
+          <button type="button" class="banner__close" aria-label="Cerrar notificación" (click)="created.set(null)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
         </div>
-        <button type="button" class="banner__close" aria-label="Cerrar notificación" (click)="created.set(null)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
-        </button>
-      </div>
+      } @else {
+        <div class="banner banner--success" role="status">
+          <div class="banner__body">
+            @if (liveStatus() === 'PROCESADO') {
+              <p class="banner__title">Documento procesado</p>
+              <p>
+                El documento <code class="mono">{{ document.id }}</code> ya está indexado y disponible en la búsqueda.
+              </p>
+              <span class="badge badge--done">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>
+                {{ liveStatus() }}
+              </span>
+            } @else {
+              <p class="banner__title">Documento recibido exitosamente</p>
+              <p>
+                El archivo fue encolado para su procesamiento con el identificador
+                <code class="mono">{{ document.id }}</code>.
+              </p>
+              <span class="badge badge--processing">
+                <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3a9 9 0 1 0 9 9" />
+                </svg>
+                {{ liveStatus() }}
+              </span>
+              @if (!live()) {
+                <p class="banner__note">
+                  Reconectando con el servidor… El estado se actualizará al restablecerse la conexión.
+                </p>
+              }
+            }
+          </div>
+          <button type="button" class="banner__close" aria-label="Cerrar notificación" (click)="created.set(null)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+      }
     }
 
     @if (fileError(); as message) {
