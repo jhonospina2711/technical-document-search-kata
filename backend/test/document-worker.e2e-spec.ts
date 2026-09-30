@@ -85,6 +85,7 @@ describe('Document Worker (PostgreSQL y RabbitMQ reales)', () => {
       new TypeOrmDocumentProcessingRepository(db.getRepository(DocumentOrmEntity)),
       store,
       new FormatContentExtractor(new TextContentExtractor(), new PdfContentExtractor()),
+      { notify: async () => undefined },
     );
     consumer = new RabbitMqDocumentConsumer(settings(), useCase);
     consumer.onApplicationBootstrap();

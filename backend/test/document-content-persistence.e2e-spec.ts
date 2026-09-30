@@ -120,6 +120,7 @@ describe('Persistencia del contenido (PostgreSQL real)', () => {
       new TypeOrmDocumentProcessingRepository(db.getRepository(DocumentOrmEntity)),
       files,
       new FormatContentExtractor(new TextContentExtractor(), new PdfContentExtractor()),
+      { notify: async () => undefined },
     );
   });
 

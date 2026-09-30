@@ -6,11 +6,12 @@ import { typeOrmOptions } from '../database/typeorm-options';
 import { FileStore } from '../documents/application/ports';
 import { DocumentOrmEntity } from '../documents/infrastructure/document.orm-entity';
 import { FilesystemFileStore } from '../documents/infrastructure/filesystem-file-store';
-import { ContentExtractor, DocumentProcessingRepository } from './application/ports';
+import { ContentExtractor, DocumentProcessingRepository, DocumentStatusNotifier } from './application/ports';
 import { ProcessDocument } from './application/process-document.use-case';
 import { FormatContentExtractor } from './infrastructure/format-content-extractor';
 import { PdfContentExtractor } from './infrastructure/pdf-content-extractor';
 import { RabbitMqDocumentConsumer } from './infrastructure/rabbitmq/rabbitmq-document-consumer';
+import { RabbitMqDocumentStatusNotifier } from './infrastructure/rabbitmq/rabbitmq-document-status-notifier';
 import { TextContentExtractor } from './infrastructure/text-content-extractor';
 import { TypeOrmDocumentProcessingRepository } from './infrastructure/typeorm-document-processing.repository';
 
@@ -31,6 +32,7 @@ import { TypeOrmDocumentProcessingRepository } from './infrastructure/typeorm-do
     TextContentExtractor,
     PdfContentExtractor,
     { provide: ContentExtractor, useClass: FormatContentExtractor },
+    { provide: DocumentStatusNotifier, useClass: RabbitMqDocumentStatusNotifier },
     ProcessDocument,
     RabbitMqDocumentConsumer,
   ],

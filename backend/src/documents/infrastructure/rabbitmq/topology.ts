@@ -17,3 +17,12 @@ export async function assertTopology(channel: Channel): Promise<void> {
     deadLetterRoutingKey: DOCUMENTS_QUEUE,
   });
 }
+
+// Avisos de estado Worker → API: exchange fanout sin cola durable; cada instancia del API
+// declara la suya (exclusiva y efímera) porque los eventos no tienen valor una vez obsoletos.
+export const DOCUMENTS_STATUS_EXCHANGE = 'documents.status';
+
+/** Declara (de forma idempotente) el exchange de avisos de estado. */
+export async function assertStatusExchange(channel: Channel): Promise<void> {
+  await channel.assertExchange(DOCUMENTS_STATUS_EXCHANGE, 'fanout', { durable: true });
+}

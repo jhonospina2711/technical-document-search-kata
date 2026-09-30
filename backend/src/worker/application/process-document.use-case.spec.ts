@@ -1,7 +1,7 @@
 import { FileStore } from '../../documents/application/ports';
 import { Document, DocumentFormat, DocumentStatus } from '../../documents/domain/document';
 import { ContentExtractionError, UnsupportedFormatError } from './errors';
-import { ContentExtractor, DocumentProcessingRepository } from './ports';
+import { ContentExtractor, DocumentProcessingRepository, DocumentStatusNotifier } from './ports';
 import { ProcessDocument } from './process-document.use-case';
 
 const pending: Document = {
@@ -24,6 +24,7 @@ describe('ProcessDocument', () => {
   let documents: jest.Mocked<DocumentProcessingRepository>;
   let files: jest.Mocked<FileStore>;
   let extractor: jest.Mocked<ContentExtractor>;
+  let notifier: jest.Mocked<DocumentStatusNotifier>;
   let useCase: ProcessDocument;
 
   beforeEach(() => {
@@ -34,7 +35,8 @@ describe('ProcessDocument', () => {
       remove: jest.fn().mockResolvedValue(undefined),
     };
     extractor = { extract: jest.fn().mockResolvedValue('hola') };
-    useCase = new ProcessDocument(documents, files, extractor);
+    notifier = { notify: jest.fn().mockResolvedValue(undefined) };
+    useCase = new ProcessDocument(documents, files, extractor, notifier);
   });
 
   it('procesa: guarda PROCESADO con el contenido y elimina el archivo (AC-01)', async () => {
@@ -119,5 +121,68 @@ describe('ProcessDocument', () => {
     await expect(useCase.execute('doc-1')).resolves.toBeUndefined();
 
     expect(documents.saveOutcome).toHaveBeenCalledTimes(1);
+  });
+
+  describe('aviso de estado', () => {
+    it('avisa una vez con PROCESADO tras guardar el resultado', async () => {
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).toHaveBeenCalledTimes(1);
+      expect(notifier.notify).toHaveBeenCalledWith({ documentId: 'doc-1', ownerId: 'u', status: DocumentStatus.PROCESADO });
+      expect(notifier.notify.mock.invocationCallOrder[0]).toBeGreaterThan(
+        documents.saveOutcome.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('avisa con ERROR cuando el fallo es determinista', async () => {
+      extractor.extract.mockRejectedValue(new ContentExtractionError('vacío'));
+
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).toHaveBeenCalledWith({ documentId: 'doc-1', ownerId: 'u', status: DocumentStatus.ERROR });
+    });
+
+    it('no avisa si el documento no existe', async () => {
+      documents.findById.mockResolvedValue(null);
+
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).not.toHaveBeenCalled();
+    });
+
+    it.each([DocumentStatus.PROCESADO, DocumentStatus.ERROR])('no avisa en una entrega repetida (ya %s)', async (status) => {
+      documents.findById.mockResolvedValue({ ...pending, status });
+
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).not.toHaveBeenCalled();
+    });
+
+    it('no avisa si otro consumidor ya había resuelto el documento', async () => {
+      documents.saveOutcome.mockResolvedValue(false);
+
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['guardar', () => documents.saveOutcome.mockRejectedValue(new Error('db caída'))],
+      ['leer el archivo', () => files.read.mockRejectedValue(new Error('EIO'))],
+    ])('no avisa ante un fallo transitorio al %s', async (_name, arrange) => {
+      arrange();
+
+      await expect(useCase.execute('doc-1')).rejects.toThrow();
+
+      expect(notifier.notify).not.toHaveBeenCalled();
+    });
+
+    it('avisa aunque falle el borrado del archivo', async () => {
+      files.remove.mockRejectedValue(new Error('EPERM'));
+
+      await useCase.execute('doc-1');
+
+      expect(notifier.notify).toHaveBeenCalledTimes(1);
+    });
   });
 });

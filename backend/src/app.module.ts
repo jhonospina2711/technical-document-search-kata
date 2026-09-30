@@ -6,6 +6,7 @@ import { requestIdMiddleware } from './common/request-id';
 import { validateEnv } from './config/env.validation';
 import { typeOrmOptions } from './database/typeorm-options';
 import { DocumentsModule } from './documents/documents.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { SearchModule } from './search/search.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { SearchModule } from './search/search.module';
     }),
     AuthModule,
     DocumentsModule,
+    RealtimeModule,
     SearchModule,
   ],
 })

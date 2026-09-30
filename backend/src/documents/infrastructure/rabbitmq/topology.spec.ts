@@ -1,5 +1,12 @@
 import type { Channel } from 'amqplib';
-import { assertTopology, DOCUMENTS_DLQ, DOCUMENTS_DLX, DOCUMENTS_QUEUE } from './topology';
+import {
+  assertStatusExchange,
+  assertTopology,
+  DOCUMENTS_DLQ,
+  DOCUMENTS_DLX,
+  DOCUMENTS_QUEUE,
+  DOCUMENTS_STATUS_EXCHANGE,
+} from './topology';
 
 describe('assertTopology', () => {
   it('declara el dead-letter y la cola principal apuntando a él', async () => {
@@ -35,5 +42,20 @@ describe('assertTopology', () => {
       'documents.dlx',
       'documents.process.dlq',
     ]);
+  });
+});
+
+describe('assertStatusExchange', () => {
+  it('declara un exchange fanout durable y ninguna cola', async () => {
+    const channel = { assertExchange: jest.fn(async () => undefined), assertQueue: jest.fn() };
+
+    await assertStatusExchange(channel as unknown as Channel);
+
+    expect(channel.assertExchange).toHaveBeenCalledWith('documents.status', 'fanout', { durable: true });
+    expect(channel.assertQueue).not.toHaveBeenCalled();
+  });
+
+  it('expone el nombre del exchange del contrato con el API', () => {
+    expect(DOCUMENTS_STATUS_EXCHANGE).toBe('documents.status');
   });
 });
