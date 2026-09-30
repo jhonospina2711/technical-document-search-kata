@@ -1,0 +1,226 @@
+<main class="upload">
+  <section class="card" aria-labelledby="upload-title">
+    <a class="back" routerLink="/">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m0 0 6-6m-6 6 6 6" /></svg>
+      Documentos
+    </a>
+
+    <h1 id="upload-title">Cargar documento</h1>
+    <p class="subtitle">Sube un archivo técnico y completa su información para indexarlo.</p>
+
+    @if (created(); as document) {
+      <div class="banner banner--success" role="status">
+        <div class="banner__body">
+          <p class="banner__title">Documento recibido exitosamente</p>
+          <p>
+            El archivo fue encolado para su procesamiento con el identificador
+            <code class="mono">{{ document.id }}</code>.
+          </p>
+          <span class="badge badge--processing">
+            <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3a9 9 0 1 0 9 9" />
+            </svg>
+            {{ document.status }}
+          </span>
+        </div>
+        <button type="button" class="banner__close" aria-label="Cerrar notificación" (click)="created.set(null)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+    }
+
+    @if (fileError(); as message) {
+      <div class="banner banner--error" role="alert">
+        <div class="banner__body">
+          <p class="banner__title">No se pudo adjuntar el archivo</p>
+          <p>{{ message }}</p>
+        </div>
+        <button type="button" class="banner__close" aria-label="Cerrar aviso" (click)="fileError.set(null)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+    }
+
+    @if (formError(); as message) {
+      <div class="banner banner--error" role="alert">
+        <div class="banner__body">
+          <p class="banner__title">Revisa los datos del formulario</p>
+          <p>{{ message }}</p>
+        </div>
+        <button type="button" class="banner__close" aria-label="Cerrar aviso" (click)="formError.set(null)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+    }
+
+    @if (serverError(); as failure) {
+      <div class="banner banner--error" role="alert">
+        <div class="banner__body">
+          <p class="banner__title">No se pudo completar la carga</p>
+          <p>{{ failure.message }}. Los datos del formulario se conservaron.</p>
+          <div class="banner__actions">
+            @if (failure.retryable) {
+              <button type="button" class="button button--danger" [disabled]="!canSubmit()" (click)="submit()">
+                Reintentar envío
+              </button>
+            }
+            <button type="button" class="link-button" (click)="serverError.set(null)">Descartar</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <div class="field__head">
+          <span class="label" id="file-label">Archivo <span class="required" aria-hidden="true">*</span></span>
+          <span class="mono muted">{{ fileIndicator() }}</span>
+        </div>
+        <app-file-dropzone
+          [file]="file()"
+          [uploading]="uploading()"
+          [progress]="progress()"
+          describedBy="file-help"
+          [(dragging)]="dragging"
+          (filesSelected)="onFilesSelected($event)"
+          (removed)="removeFile()"
+        />
+        <div class="field__help" id="file-help">
+          <span>Formatos autorizados: TXT, PDF o MD</span>
+          <span>Límite estricto: {{ maxLabel }}</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="doc-title">Título <span class="required" aria-hidden="true">*</span></label>
+        <input
+          id="doc-title"
+          type="text"
+          formControlName="title"
+          placeholder="Ej. Especificación Bomba Centrífuga P-101"
+          autocomplete="off"
+          aria-required="true"
+          [attr.aria-invalid]="errorOf('title') ? 'true' : null"
+          [attr.aria-describedby]="errorOf('title') ? 'title-error' : null"
+        />
+        @if (errorOf('title'); as message) {
+          <p class="field-error" id="title-error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="label" for="doc-author">Autor <span class="required" aria-hidden="true">*</span></label>
+        <input
+          id="doc-author"
+          type="text"
+          formControlName="author"
+          placeholder="Ej. Ing. Carlos Mendoza (Mecánica)"
+          autocomplete="off"
+          aria-required="true"
+          [attr.aria-invalid]="errorOf('author') ? 'true' : null"
+          [attr.aria-describedby]="errorOf('author') ? 'author-error' : null"
+        />
+        @if (errorOf('author'); as message) {
+          <p class="field-error" id="author-error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="label" for="doc-category">
+          Categoría <span class="required" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="doc-category"
+          formControlName="category"
+          aria-required="true"
+          [attr.aria-invalid]="errorOf('category') ? 'true' : null"
+          [attr.aria-describedby]="errorOf('category') ? 'category-error' : null"
+        >
+          <option value="" disabled>Selecciona una categoría técnica…</option>
+          @for (category of categories; track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+        @if (errorOf('category'); as message) {
+          <p class="field-error" id="category-error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <label class="label" for="doc-version">Versión <span class="required" aria-hidden="true">*</span></label>
+          <span class="mono muted">SemVer (MAJOR.MINOR.PATCH)</span>
+        </div>
+        <input
+          id="doc-version"
+          class="mono"
+          type="text"
+          formControlName="version"
+          placeholder="1.0.0"
+          autocomplete="off"
+          aria-required="true"
+          [attr.aria-invalid]="errorOf('version') ? 'true' : null"
+          [attr.aria-describedby]="errorOf('version') ? 'version-error' : null"
+        />
+        @if (errorOf('version'); as message) {
+          <p class="field-error" id="version-error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <div class="field__head">
+          <label class="label" for="tag-input">Tags <span class="muted">(opcional)</span></label>
+          <span class="muted small">Enter o coma para añadir, «x» para quitar</span>
+        </div>
+        <div class="tags" [class.tags--invalid]="tagError()">
+          @for (tag of tags(); track tag; let index = $index) {
+            <span class="chip">
+              {{ tag }}
+              <button
+                type="button"
+                class="chip__remove"
+                [attr.aria-label]="'Eliminar tag ' + tag"
+                [disabled]="uploading()"
+                (click)="removeTag(index)"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+              </button>
+            </span>
+          }
+          <input
+            id="tag-input"
+            class="tags__input"
+            type="text"
+            autocomplete="off"
+            placeholder="Añadir etiqueta…"
+            [formControl]="tagDraft"
+            [attr.aria-describedby]="tagError() ? 'tag-error' : 'tag-help'"
+            (keydown)="onTagKeydown($event)"
+            (input)="onTagInput()"
+            (blur)="commitDraft()"
+          />
+        </div>
+        @if (tagError(); as message) {
+          <p class="field-error" id="tag-error">{{ message }}</p>
+        } @else {
+          <p class="muted small" id="tag-help">Etiquetas técnicas para búsqueda y filtrado rápido en el catálogo.</p>
+        }
+      </div>
+
+      <div class="actions">
+        <button type="button" class="button button--secondary" [disabled]="uploading()" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="button button--primary" [disabled]="!canSubmit()">
+          @if (uploading()) {
+            <svg class="spin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9" /></svg>
+            Subiendo documento…
+          } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-5 5m5-5 5 5M5 20h14" /></svg>
+            Cargar documento
+          }
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

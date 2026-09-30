@@ -1,0 +1,78 @@
+<div
+  class="dropzone"
+  [class.dropzone--dragging]="dragging()"
+  [class.dropzone--attached]="!dragging() && !uploading() && file()"
+  (dragenter)="onDragEnter($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  <input
+    #picker
+    class="dropzone__input"
+    type="file"
+    accept=".txt,.pdf,.md"
+    tabindex="-1"
+    aria-hidden="true"
+    (change)="onPicked()"
+  />
+
+  @if (uploading()) {
+    <div class="dropzone__uploading">
+      <div class="dropzone__uploading-head">
+        <span>{{ percent() >= 100 ? 'Procesando en el servidor…' : 'Subiendo archivo…' }}</span>
+        <span class="mono">{{ percent() }}%</span>
+      </div>
+      <div
+        class="dropzone__bar"
+        role="progressbar"
+        aria-label="Progreso de subida"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="percent()"
+      >
+        <div class="dropzone__bar-fill" [style.width.%]="percent()"></div>
+      </div>
+      <div class="dropzone__uploading-foot mono">
+        <span class="dropzone__name">{{ file()?.name }}</span>
+        <span>{{ bytesLabel() }}</span>
+      </div>
+    </div>
+  } @else if (dragging()) {
+    <div class="dropzone__hint">
+      <svg class="dropzone__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 4v12m0 0-5-5m5 5 5-5M5 20h14" />
+      </svg>
+      <p class="dropzone__title dropzone__title--active">Suelta el archivo para cargarlo</p>
+    </div>
+  } @else if (file(); as attached) {
+    <div class="dropzone__file">
+      <span class="dropzone__format" aria-hidden="true">{{ format() }}</span>
+      <div class="dropzone__meta">
+        <span class="dropzone__name">{{ attached.name }}</span>
+        <span class="dropzone__detail mono">
+          {{ sizeLabel() }} ·
+          <span class="dropzone__valid">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>
+            Validado
+          </span>
+        </span>
+      </div>
+      <div class="dropzone__actions">
+        <button type="button" class="link-button" (click)="openPicker()">Cambiar archivo</button>
+        <button type="button" class="link-button link-button--danger" (click)="removed.emit()">
+          Quitar archivo
+        </button>
+      </div>
+    </div>
+  } @else {
+    <button type="button" class="dropzone__pick" [attr.aria-describedby]="describedBy()" (click)="openPicker()">
+      <svg class="dropzone__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 16V4m0 0-5 5m5-5 5 5M5 20h14" />
+      </svg>
+      <span class="dropzone__title">
+        Arrastra tu archivo aquí <span class="dropzone__or">o</span>&ngsp;<span class="dropzone__select">selecciona</span>
+      </span>
+    </button>
+  }
+</div>

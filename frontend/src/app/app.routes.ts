@@ -10,6 +10,7 @@ export const routes: Routes = [
     canActivate: [isAuthenticatedGuard],
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./home/home-page').then((m) => m.HomePage) },
+      { path: 'documents', loadChildren: () => import('./documents/documents.routes').then((m) => m.DOCUMENTS_ROUTES) },
     ],
   },
   { path: '**', redirectTo: '' },

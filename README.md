@@ -83,6 +83,12 @@ Contrato para el consumidor (Document Worker): consumir con ACK manual, hacer `a
 
 Riesgo conocido: si el proceso del API cae entre guardar el documento y recibir la confirmación del broker, puede quedar un documento en `PROCESANDO` sin mensaje (no hay outbox).
 
+### Pantalla de carga (frontend)
+
+Ruta privada `/documents/upload` (enlace desde la home): elige un archivo TXT, PDF o MD, completa título, autor, categoría, versión (SemVer `X.Y.Z`) y tags opcionales, y lo envía a `POST /documents` con progreso de subida. Al recibir `202` muestra el `id` y el estado `PROCESANDO`; el seguimiento en vivo del estado (SSE) aún no está implementado. Valida en cliente tipo, tamaño, archivo vacío y nombre, pero el backend sigue siendo la autoridad (`400`/`413`).
+
+El límite de tamaño que valida y muestra el frontend está en `frontend/src/environments/environment.ts` (`maxFileSizeBytes`, 10 MB) y debe mantenerse igual a `UPLOAD_MAX_FILE_SIZE_BYTES` del backend.
+
 ## Document Worker
 
 Proceso aparte del API (`backend/src/worker`) que consume la cola `documents.process` de RabbitMQ: lee `<UPLOAD_DIR>/<id>`, extrae y normaliza el texto y deja el documento en `PROCESADO` (con `content`) o `ERROR`. Necesita `POSTGRES_*`, `RABBITMQ_URL` y `UPLOAD_DIR`; no necesita `JWT_SECRET`.

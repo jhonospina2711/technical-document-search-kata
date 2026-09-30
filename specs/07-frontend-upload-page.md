@@ -1,6 +1,6 @@
 # SPEC-07 — Pantalla de carga de documentos (Frontend)
 
-**Status:** Draft
+**Status:** Implementado
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-01 — Carga de documentos (Jira KTL-1)
 **Tareas Jira:** E1-01-FE-01 (vista), E1-01-FE-02 (formulario de metadata), E1-01-FE-03 (selección y validación de archivo), E1-01-FE-04 (integración con `POST /documents`), E1-01-FE-05 (estado de procesamiento). Consolidadas en una sola SPEC porque comparten una única pantalla.

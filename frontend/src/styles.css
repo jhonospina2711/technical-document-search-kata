@@ -7,6 +7,14 @@
   --primary: #1d4ed8;
   --primary-text: #ffffff;
   --danger: #b42318;
+  --danger-bg: #fef3f2;
+  --success: #047857;
+  --success-bg: #ecfdf5;
+  --warning: #b45309;
+  --warning-bg: #fffaeb;
+  --dropzone-bg: #eff4ff;
+  --dropzone-bg-active: #dbe6ff;
+  --dropzone-border: #98a2b3;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,6 +27,14 @@
     --primary: #6a93ff;
     --primary-text: #0b1220;
     --danger: #ff8a80;
+    --danger-bg: #3a1d1f;
+    --success: #4ade80;
+    --success-bg: #12301f;
+    --warning: #fbbf24;
+    --warning-bg: #3a2c0f;
+    --dropzone-bg: #182238;
+    --dropzone-bg-active: #22345c;
+    --dropzone-border: #5b6780;
   }
 }
 
@@ -36,6 +52,75 @@ h1 {
 
 a {
   color: var(--primary);
+}
+
+/* Utilidades compartidas por la feature de documentos */
+.mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.link-button {
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  background: var(--dropzone-bg);
+}
+
+.link-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.link-button--danger {
+  color: var(--danger);
+}
+
+/* Botones compartidos */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button--primary {
+  color: var(--primary-text);
+  background: var(--primary);
+}
+
+.button--secondary {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.button--danger {
+  padding: 0 14px;
+  color: var(--primary-text);
+  background: var(--danger);
 }
 
 /* Formularios de autenticación (login y registro) */
