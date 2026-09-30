@@ -116,7 +116,8 @@ describe('Persistencia de documents (PostgreSQL real)', () => {
   });
 
   run('revertir la migración elimina la tabla documents', async () => {
-    await db.undoLastMigration();
+    await db.undoLastMigration(); // AddDocumentSearchVector (depende de la tabla)
+    await db.undoLastMigration(); // CreateDocuments
     const [{ exists }] = await db.query(`SELECT to_regclass('public.documents') IS NOT NULL AS exists`);
     expect(exists).toBe(false);
     await db.runMigrations();
