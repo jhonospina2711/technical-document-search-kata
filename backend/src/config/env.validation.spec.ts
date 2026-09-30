@@ -33,6 +33,16 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...base, JWT_SECRET: '' })).toThrow('JWT_SECRET');
   });
 
+  it('aplica valores por defecto de la carga y valida el tamaño máximo', () => {
+    expect(validateEnv(base)).toMatchObject({ UPLOAD_DIR: './uploads', UPLOAD_MAX_FILE_SIZE_BYTES: 10485760 });
+    expect(validateEnv({ ...base, UPLOAD_DIR: '/data', UPLOAD_MAX_FILE_SIZE_BYTES: '2048' })).toMatchObject({
+      UPLOAD_DIR: '/data',
+      UPLOAD_MAX_FILE_SIZE_BYTES: 2048,
+    });
+    expect(() => validateEnv({ ...base, UPLOAD_MAX_FILE_SIZE_BYTES: '-1' })).toThrow('UPLOAD_MAX_FILE_SIZE_BYTES');
+    expect(() => validateEnv({ ...base, UPLOAD_MAX_FILE_SIZE_BYTES: 'grande' })).toThrow('UPLOAD_MAX_FILE_SIZE_BYTES');
+  });
+
   it('falla si JWT_EXPIRES_IN no es una duración válida', () => {
     expect(() => validateEnv({ ...base, JWT_EXPIRES_IN: 'mañana' })).toThrow('JWT_EXPIRES_IN');
   });

@@ -1,6 +1,6 @@
 # SPEC-03 — Endpoint de Upload
 
-**Status:** Draft
+**Status:** Approved
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-01 — Carga de documentos (Jira KTL-1)
 **Tarea Jira:** KTL-6 — E1-01-BE-02 — Endpoint de Upload
@@ -16,7 +16,7 @@ Exponer `POST /documents`, un endpoint REST multipart que recibe un archivo téc
 - Alta del documento con `createDocument(...)` (estado `PROCESANDO`) a través de un puerto `DocumentRepository` con la operación mínima `add`, más su adaptador TypeORM.
 - Derivación de `fileFormat` (`TXT` | `PDF` | `MD`) a partir de la extensión del archivo.
 - Respuesta `202 Accepted` con `{ id, status }`.
-- Entrega del archivo original al Worker: ver §12, decisión D-01 (bloqueante para aprobar).
+- Entrega del archivo original al Worker: ver §12, decisión D-01 (decidido: volumen compartido).
 - Tests unitarios y e2e del endpoint.
 
 ### Out of scope
@@ -174,17 +174,17 @@ Sin impacto. `id` y `status` de la respuesta son el identificador de seguimiento
 - Medición del requisito "respuesta inmediata": el log de duración de la petición; la respuesta solo incluye una inserción en base de datos. No se promete un tiempo concreto; se mide con el log durante las pruebas manuales (p. ej. Postman, colección ya en el repo) con archivos de distinto tamaño.
 
 ## 11. Documentation / AI Traceability
-- Docs sin restricción: añadir el endpoint a `Postman_Collection.json` (ya sin seguimiento en git; confirmar con el usuario) y a `README.md` si describe la API.
+- Docs sin restricción: actualizar `Postman_Collection.json` (raíz del repo; hoy está vacío y sin seguimiento en git) como parte obligatoria de la tarea, en formato Postman Collection v2.1: incluir `POST /documents` (multipart con `file` y metadatos, `Authorization: Bearer {{token}}`, con ejemplos de respuesta `202`, `400` y `401`) y los endpoints de `auth` ya existentes (`register`, `login`, `check-token`), para que la colección sea utilizable de extremo a extremo. Usar variables `{{baseUrl}}` y `{{token}}` (esta última se guarda con un script de test en `login`/`register`). Actualizar también `README.md` si describe la API.
 - Docs con puerta de aprobación (`docs/arquitecture.md`, `docs/ia.md`): no se modifican. Al terminar se propondrá, sin aplicar, el texto del contrato del endpoint y el registro del uso de IA.
 - AI-generated changes that require manual validation: configuración de multer (límites, memoria), saneamiento de `fileName`, transformación de `tags`, mapeo dominio ↔ ORM y que la respuesta no espere trabajo posterior.
 
 ## 12. Assumptions / Open Questions
-- **D-01 (bloqueante) — Entrega del archivo al Worker.** SPEC-02 descartó guardar el binario ("HU-01 pide guardar contenido extraído"), pero el Worker (proceso separado) necesita los bytes para extraer el texto, y multer en memoria los pierde al terminar la petición. Opciones:
+- **D-01: decidido (usuario) — opción 1, volumen compartido `UPLOAD_DIR`.** El API escribe `<UPLOAD_DIR>/<id>` (nombre en disco = id, nunca el nombre original); el Worker lo lee y lo borra tras procesar. Sin migración. Contexto original:
+- **D-01 — Entrega del archivo al Worker.** SPEC-02 descartó guardar el binario ("HU-01 pide guardar contenido extraído"), pero el Worker (proceso separado) necesita los bytes para extraer el texto, y multer en memoria los pierde al terminar la petición. Opciones:
   1. *(Recomendada)* Volumen compartido en Docker Compose (`UPLOAD_DIR`): el API escribe `<UPLOAD_DIR>/<id>`, el Worker lo lee y lo borra tras procesar. Sin cambios de esquema; el mensaje solo lleva `documentId`.
   2. Columna `bytea` en `documents` (o tabla aparte): todo en PostgreSQL, consistente con "PostgreSQL como único almacén", pero requiere migración y engorda la tabla.
   3. Enviar el binario dentro del mensaje RabbitMQ: descartado (mensajes grandes, mal encaje con PDF).
-  Sin esta decisión no se puede aprobar el SPEC, porque define si el upload escribe a disco o a base de datos y si hay migración.
-- **D-02 a D-05: decididos (usuario).** Se aceptan las propuestas tal como están escritas abajo.
+  - **D-02 a D-05: decididos (usuario).** Se aceptan las propuestas tal como están escritas abajo.
 - **D-02 — Límite de tamaño provisional.** Propuesta: variable `UPLOAD_MAX_FILE_SIZE_BYTES` (por defecto 10 MB) validada en `env.validation.ts`, reutilizada y ampliada por KTL-7. Alternativa: dejar el límite íntegramente para KTL-7 (y aceptar hasta entonces el tope por defecto de multer, que es ilimitado).
 - **D-03 — Código para formato no soportado:** `400` (propuesto, por simplicidad y coherencia con los errores de validación) frente a `415`. KTL-7 puede refinarlo.
 - **D-04 — Alcance del repositorio:** este SPEC adelanta `DocumentRepository.add` y su adaptador porque sin persistencia no existe id de seguimiento real. KTL-8 conserva lecturas y pruebas de recuperación. Si se prefiere no adelantar nada, la alternativa es fusionar KTL-6 y KTL-8.
@@ -200,4 +200,4 @@ Sin impacto. `id` y `status` de la respuesta son el identificador de seguimiento
 6. Registrar todo en `DocumentsModule` (importando `AuthModule`).
 7. Prueba e2e contra PostgreSQL (AC-01, AC-02, AC-04, AC-05, AC-06, AC-08).
 8. `npm run lint`, `npm test`, `npm run test:cov` (>=80% en `documents`).
-9. Añadir el endpoint a la colección de Postman; revisar con `06-security-review`, `07-api-review` y `10-architecture-review`; proponer sin aplicar los cambios a `docs/arquitecture.md` y `docs/ia.md`.
+9. Actualizar `Postman_Collection.json` con `POST /documents` y los endpoints de `auth` (ver §11), y validar que el JSON es válido; revisar con `06-security-review`, `07-api-review` y `10-architecture-review`; proponer sin aplicar los cambios a `docs/arquitecture.md` y `docs/ia.md`.

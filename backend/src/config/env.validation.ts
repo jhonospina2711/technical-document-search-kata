@@ -20,8 +20,15 @@ export function validateEnv(env: Record<string, unknown>): Record<string, unknow
     throw new Error(`JWT_EXPIRES_IN inválido: "${jwtExpiresIn}" (ej. 6h, 30m, 3600)`);
   }
 
+  const maxFileSize = Number(env.UPLOAD_MAX_FILE_SIZE_BYTES || 10 * 1024 * 1024);
+  if (!Number.isInteger(maxFileSize) || maxFileSize <= 0) {
+    throw new Error(`UPLOAD_MAX_FILE_SIZE_BYTES inválido: "${env.UPLOAD_MAX_FILE_SIZE_BYTES}" (entero positivo)`);
+  }
+
   return {
     ...env,
+    UPLOAD_DIR: env.UPLOAD_DIR || './uploads',
+    UPLOAD_MAX_FILE_SIZE_BYTES: maxFileSize,
     JWT_EXPIRES_IN: jwtExpiresIn,
     POSTGRES_PORT: Number(env.POSTGRES_PORT || 5432),
     PORT: Number(env.PORT || 3000),
