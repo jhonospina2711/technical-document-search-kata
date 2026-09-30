@@ -1,0 +1,234 @@
+.search {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.search__form {
+  display: flex;
+  gap: 8px;
+}
+
+.search__field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search__field input {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 40px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.search__field input:focus-visible,
+.search__sort select:focus-visible,
+.search__list:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.search__icon,
+.search__clear {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.search__icon {
+  left: 12px;
+  pointer-events: none;
+}
+
+.search__clear {
+  right: 6px;
+  display: flex;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.search__clear:focus-visible {
+  outline: 2px solid var(--primary);
+}
+
+.search__form .button {
+  height: 44px;
+}
+
+.search__metrics {
+  min-height: 20px;
+  margin: 16px 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.search__metrics p {
+  margin: 0;
+}
+
+.search__metrics strong {
+  color: var(--text);
+}
+
+.search__term {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.search__notice {
+  display: inline-block;
+  margin-top: 8px !important;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-bg);
+  border-radius: 6px;
+}
+
+.search__sort {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.search__sort select {
+  height: 36px;
+  padding: 0 8px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.search__list {
+  display: grid;
+  /* minmax(0, …): sin esto el título con nowrap ensancha la columna más allá del viewport en móvil. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.search__list:focus {
+  outline: none;
+}
+
+.panel {
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+}
+
+.panel p,
+.panel ul {
+  margin: 0 auto 16px;
+  max-width: 420px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.panel ul {
+  padding-left: 20px;
+  text-align: left;
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+}
+
+.banner p {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.skeleton {
+  display: grid;
+  gap: 12px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.skeleton__line {
+  display: block;
+  height: 14px;
+  background: var(--skeleton);
+  border-radius: 4px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton__line--title {
+  width: 65%;
+  height: 18px;
+}
+
+.skeleton__line--meta {
+  width: 35%;
+}
+
+.skeleton__line--text {
+  height: 44px;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__line {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .search__form {
+    flex-direction: column;
+  }
+
+  .search__form .button,
+  .search__sort select {
+    height: 44px;
+  }
+}

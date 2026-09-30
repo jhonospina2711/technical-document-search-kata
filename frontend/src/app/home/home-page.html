@@ -1,5 +1,6 @@
 <main class="home">
   <h1>Hola, {{ auth.currentUser()?.name }}</h1>
   <p><a routerLink="/documents/upload">Cargar documento</a></p>
+  <p><a routerLink="/search">Buscar documentos</a></p>
   <button type="button" (click)="auth.logout()">Cerrar sesión</button>
 </main>

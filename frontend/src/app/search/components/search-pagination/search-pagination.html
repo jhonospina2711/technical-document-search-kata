@@ -1,0 +1,31 @@
+@if (lastPage() > 1) {
+  <nav class="pagination" aria-label="Navegación de resultados">
+    <span class="pagination__summary">
+      Mostrando <strong>{{ from() }}–{{ to() }}</strong> de <strong>{{ total() }}</strong>
+    </span>
+    <div class="pagination__controls">
+      <button type="button" class="pagination__button pagination__button--wide" [disabled]="current() === 1" (click)="goTo(current() - 1)">
+        <span aria-hidden="true">‹</span> Anterior
+      </button>
+      @for (item of items(); track $index) {
+        @if (item === 'ellipsis') {
+          <span class="pagination__ellipsis" aria-hidden="true">…</span>
+        } @else {
+          <button
+            type="button"
+            class="pagination__button"
+            [class.pagination__button--current]="item === current()"
+            [attr.aria-current]="item === current() ? 'page' : null"
+            [attr.aria-label]="'Página ' + item"
+            (click)="goTo(item)"
+          >
+            {{ item }}
+          </button>
+        }
+      }
+      <button type="button" class="pagination__button pagination__button--wide" [disabled]="current() === lastPage()" (click)="goTo(current() + 1)">
+        Siguiente <span aria-hidden="true">›</span>
+      </button>
+    </div>
+  </nav>
+}

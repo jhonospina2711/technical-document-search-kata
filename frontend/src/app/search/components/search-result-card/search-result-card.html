@@ -1,0 +1,43 @@
+<article class="card">
+  <div class="card__head">
+    <span class="badge" [attr.data-format]="item().format">{{ item().format }}</span>
+    <div class="card__heading">
+      <a class="card__title" [routerLink]="documentLink()" [title]="item().title">{{ item().title }}</a>
+      <p class="card__meta">
+        <span class="card__author">{{ item().author }}</span>
+        <span class="card__separator" aria-hidden="true">•</span>
+        @if (date(); as date) {
+          <time [attr.datetime]="date.iso">{{ date.label }}</time>
+        } @else {
+          <span>—</span>
+        }
+        <span class="card__separator" aria-hidden="true">•</span>
+        <span class="mono">v{{ item().version }}</span>
+        @if (item().tags.length > 0) {
+          <span class="card__separator" aria-hidden="true">•</span>
+          <span class="tags">
+            @for (tag of item().tags; track tag) {
+              <span class="tag mono">#{{ tag }}</span>
+            }
+          </span>
+        }
+      </p>
+    </div>
+    <a class="card__action" [routerLink]="documentLink()" [attr.aria-label]="'Ver documento: ' + item().title">
+      Ver documento <span aria-hidden="true">→</span>
+    </a>
+  </div>
+
+  @if (item().snippet.segments.length > 0) {
+    <p class="snippet">
+      @if (item().snippet.truncatedStart) {…}@for (segment of item().snippet.segments; track $index) {@if (segment.highlight) {<mark>{{ segment.text }}</mark>} @else {{{ segment.text }}}}@if (item().snippet.truncatedEnd) {…}
+    </p>
+  }
+
+  <div class="relevance">
+    <span class="relevance__label">Relevancia {{ percent() }} %</span>
+    <div class="meter" role="meter" aria-label="Relevancia" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="percent()">
+      <div class="meter__fill" [style.width.%]="percent()"></div>
+    </div>
+  </div>
+</article>

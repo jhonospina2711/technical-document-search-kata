@@ -1,0 +1,105 @@
+<main class="search">
+  <h1>Buscar documentos</h1>
+
+  <form class="search__form" role="search" (submit)="submit($event)">
+    <label class="sr-only" for="search-term">Término de búsqueda</label>
+    <div class="search__field">
+      <svg class="search__icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input
+        #termInput
+        id="search-term"
+        type="search"
+        autocomplete="off"
+        placeholder="Buscar especificaciones, runbooks, manuales…"
+        [formControl]="term"
+        [maxLength]="maxLength"
+      />
+      @if (termValue()) {
+        <button type="button" class="search__clear" aria-label="Limpiar búsqueda" (click)="clear()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      }
+    </div>
+    <button type="submit" class="button button--primary">Buscar</button>
+  </form>
+
+  <div class="search__metrics" aria-live="polite">
+    @if (view().response; as response) {
+      <p>
+        <strong>{{ response.total }} {{ response.total === 1 ? 'resultado' : 'resultados' }}</strong> para
+        <span class="search__term">«{{ view().q }}»</span> · <span class="mono">{{ seconds(response.tookMs) }} s</span>
+      </p>
+      @if (response.pendingCount > 0) {
+        <p class="search__notice">Algunos documentos siguen en procesamiento y aún no aparecen en los resultados</p>
+      }
+    }
+  </div>
+
+  @if (view().state === 'results') {
+    <div class="search__sort">
+      <label for="search-sort">Ordenar por:</label>
+      <select id="search-sort" (change)="onSortChange($event)">
+        @for (option of sorts; track option.value) {
+          <option [value]="option.value" [selected]="option.value === params().sort">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <section #list class="search__list" tabindex="-1" aria-label="Resultados" [attr.aria-busy]="view().state === 'loading'">
+    @switch (view().state) {
+      @case ('initial') {
+        <div class="panel">
+          <h2>Búsqueda de documentación técnica</h2>
+          <p>Escribe palabras clave para explorar especificaciones, runbooks y guías de arquitectura.</p>
+        </div>
+      }
+      @case ('loading') {
+        @for (n of skeletons; track n) {
+          <div class="skeleton" aria-hidden="true">
+            <span class="skeleton__line skeleton__line--title"></span>
+            <span class="skeleton__line skeleton__line--meta"></span>
+            <span class="skeleton__line skeleton__line--text"></span>
+          </div>
+        }
+      }
+      @case ('results') {
+        @if (view().response; as response) {
+          @for (item of response.items; track item.id) {
+            <app-search-result-card [item]="item" />
+          }
+        }
+      }
+      @case ('empty') {
+        <div class="panel">
+          <h2>No encontramos documentos para «{{ view().q }}»</h2>
+          <ul>
+            <li>Revisa la ortografía o prueba con sinónimos.</li>
+            <li>Usa términos más generales o menos palabras.</li>
+          </ul>
+          <button type="button" class="button button--primary" (click)="clear()">Limpiar búsqueda</button>
+        </div>
+      }
+      @case ('error') {
+        @if (view().failure?.kind !== 'unauthorized') {
+          <div class="banner" role="alert">
+            <div>
+              <strong>No se pudo completar la búsqueda</strong>
+              <p>{{ view().failure?.message }}</p>
+            </div>
+            <button type="button" class="button button--danger" (click)="retry()">Reintentar</button>
+          </div>
+        }
+      }
+    }
+  </section>
+
+  @if (view().state === 'results' && view().response; as response) {
+    <app-search-pagination [page]="params().page" [pageSize]="response.pageSize" [total]="response.total" (pageChange)="onPageChange($event)" />
+  }
+</main>

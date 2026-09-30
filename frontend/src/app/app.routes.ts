@@ -11,6 +11,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./home/home-page').then((m) => m.HomePage) },
       { path: 'documents', loadChildren: () => import('./documents/documents.routes').then((m) => m.DOCUMENTS_ROUTES) },
+      { path: 'search', loadChildren: () => import('./search/search.routes').then((m) => m.SEARCH_ROUTES) },
     ],
   },
   { path: '**', redirectTo: '' },
