@@ -1,0 +1,105 @@
+:root {
+  --surface: #ffffff;
+  --surface-muted: #f4f5f7;
+  --border: #d0d5dd;
+  --text: #1d2939;
+  --text-muted: #475467;
+  --primary: #1d4ed8;
+  --primary-text: #ffffff;
+  --danger: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1d2433;
+    --surface-muted: #111827;
+    --border: #3b4558;
+    --text: #f2f4f7;
+    --text-muted: #b6bfcc;
+    --primary: #6a93ff;
+    --primary-text: #0b1220;
+    --danger: #ff8a80;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+}
+
+a {
+  color: var(--primary);
+}
+
+/* Formularios de autenticación (login y registro) */
+.auth-form .field {
+  margin-bottom: 16px;
+}
+
+.auth-form label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.auth-form input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+.auth-form button[type='submit'] {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary-text);
+  background: var(--primary);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.auth-form button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.field-error,
+.form-error {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+
+.form-error {
+  margin: 0 0 16px;
+}
+
+.auth-alt {
+  margin: 16px 0 0;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.home {
+  padding: 32px 16px;
+}

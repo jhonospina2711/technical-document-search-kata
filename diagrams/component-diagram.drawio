@@ -5,10 +5,10 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-4" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;" value="" vertex="1">
-          <mxGeometry height="237" width="899" x="95" y="459" as="geometry" />
+          <mxGeometry height="237" width="1120" x="95" y="459" as="geometry" />
         </mxCell>
         <mxCell id="nhdX6Im8cPlO2sISbFKw-26" parent="1" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;fillColor=light-dark(#DAE8FC,#C5DCE8);dashed=1;" value="" vertex="1">
-          <mxGeometry height="240" width="788" x="72" y="117" as="geometry" />
+          <mxGeometry height="240" width="1143" x="72" y="117" as="geometry" />
         </mxCell>
         <mxCell id="nhdX6Im8cPlO2sISbFKw-5" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Frontend-Search&lt;/b&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;Búsqueda y resultados&lt;/span&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="54" width="180" x="113" y="225" as="geometry" />
@@ -34,7 +34,7 @@
             <mxPoint x="-27" y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="nhdX6Im8cPlO2sISbFKw-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;REST (HTTPS)&lt;/span&gt;" vertex="1">
+        <mxCell id="nhdX6Im8cPlO2sISbFKw-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;REST (HTTPS)&lt;br&gt;+ Bearer JWT&lt;/span&gt;" vertex="1">
           <mxGeometry height="30" width="99" x="266" y="369" as="geometry" />
         </mxCell>
         <mxCell id="nhdX6Im8cPlO2sISbFKw-15" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Documents Module&lt;/b&gt;&lt;/span&gt;&lt;b style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;&amp;nbsp;&lt;br&gt;- &lt;/b&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0)); background-color: transparent;&quot;&gt;Gestión de documentos&lt;br&gt;-Metadata&lt;br&gt;-Estado de procesamiento&lt;br&gt;- Publicación de eventos&lt;/span&gt;" vertex="1">
@@ -218,7 +218,7 @@
             <mxPoint x="-27" y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="VXOCUtF4EI4AEpHX8tc7-31" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;div&gt;«component»&lt;/div&gt;&lt;div&gt;&lt;b&gt;DBDocuments&lt;/b&gt;&lt;br&gt;- Almacenamiento documentos&lt;br&gt;- Contenido&lt;/div&gt;&lt;div&gt;- Indice full-text (tsvector + GIN)&lt;br&gt;- Metadatos y estado&lt;/div&gt;" vertex="1">
+        <mxCell id="VXOCUtF4EI4AEpHX8tc7-31" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;div&gt;«component»&lt;/div&gt;&lt;div&gt;&lt;b&gt;DBDocuments&lt;/b&gt;&lt;br&gt;- Almacenamiento documentos&lt;br&gt;- Contenido&lt;/div&gt;&lt;div&gt;- Indice full-text (tsvector + GIN)&lt;br&gt;- Metadatos, estado y usuarios&lt;/div&gt;" vertex="1">
           <mxGeometry height="90" width="252" x="589" y="1035" as="geometry" />
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-32" parent="VXOCUtF4EI4AEpHX8tc7-31" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
@@ -317,6 +317,97 @@
         </mxCell>
         <mxCell id="VXOCUtF4EI4AEpHX8tc7-59" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="&lt;font style=&quot;font-size: 22px;&quot;&gt;DIAGRAMA DE COMPONENTES ARQUITECTURA BUSQUEDA EN DOCUMENTOS&lt;/font&gt;" vertex="1">
           <mxGeometry height="26" width="80" x="651" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-fe" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Frontend-Auth&lt;/b&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;Login, registro y sesión (JWT)&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="54" width="180" x="1010" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-fe-i" parent="AUTH-fe" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+          <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+            <mxPoint x="-27" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-fe-port" parent="1" style="html=1;rounded=0;fillColor=light-dark(#000000,#000001);strokeColor=light-dark(#000000,#000000);" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1096" y="279" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-fe-sock" parent="1" style="ellipse;html=1;fontSize=11;align=center;fillColor=light-dark(#FFFFFF,#FFFFFF);points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;strokeColor=light-dark(#000000,#000000);fillStyle=solid;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1096" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-e1" edge="1" parent="1" source="AUTH-fe-port" style="edgeStyle=none;html=1;rounded=0;endArrow=none;endFill=0;strokeColor=light-dark(#000000,#000000);" target="AUTH-fe-sock">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-fe-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontStyle=2" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;IAuthApi&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="1110" y="297" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-rest-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;REST (HTTPS)&lt;br&gt;/auth/*&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="100" x="1110" y="372" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-be-sock" parent="1" style="ellipse;html=1;fontSize=11;align=center;fillColor=light-dark(#FFFFFF,#FFFFFF);points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;strokeColor=light-dark(#000000,#000000);fillStyle=solid;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1096" y="441" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-e2" edge="1" parent="1" source="AUTH-fe-sock" style="edgeStyle=none;html=1;rounded=0;endArrow=none;endFill=0;strokeColor=light-dark(#000000,#000000);" target="AUTH-be-sock">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-mod" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;fillStyle=solid;fillColor=none;strokeColor=light-dark(#36393D,#000000);" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«component»&lt;br&gt;&lt;b&gt;Auth Module&lt;/b&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;- Registro y login&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;- JWT (check-token)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;- AuthGuard reutilizable&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="180" x="1010" y="558" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-mod-i" parent="AUTH-mod" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+          <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+            <mxPoint x="-27" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-e3" edge="1" parent="1" source="AUTH-be-sock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=light-dark(#000000,#000000);entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="AUTH-mod">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-u1" edge="1" parent="1" source="nhdX6Im8cPlO2sISbFKw-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#6C8EBF;exitX=0.96;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="AUTH-mod">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="520" />
+              <mxPoint x="1046" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-u2" edge="1" parent="1" source="nhdX6Im8cPlO2sISbFKw-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#6C8EBF;exitX=0.85;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="AUTH-mod">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="664" y="520" />
+              <mxPoint x="1046" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-u3" edge="1" parent="1" source="nhdX6Im8cPlO2sISbFKw-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;strokeColor=#6C8EBF;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="AUTH-mod">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="896" y="520" />
+              <mxPoint x="1046" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-use-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=2" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;«use» AuthGuard&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="110" x="920" y="492" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-db-port" parent="1" style="html=1;rounded=0;fillColor=light-dark(#000000,#000001);strokeColor=light-dark(#000000,#000000);" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1096" y="648" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-db-sock" parent="1" style="ellipse;html=1;fontSize=11;align=center;fillColor=light-dark(#FFFFFF,#FFFFFF);points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;strokeColor=light-dark(#000000,#000000);fillStyle=solid;" value="" vertex="1">
+          <mxGeometry height="8" width="8" x="1096" y="681" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-e4" edge="1" parent="1" source="AUTH-db-port" style="edgeStyle=none;html=1;rounded=0;endArrow=none;endFill=0;strokeColor=light-dark(#000000,#000000);" target="AUTH-db-sock">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-db-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontStyle=2" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;IUserRepository&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="100" x="1110" y="664" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH-e5" edge="1" parent="1" source="AUTH-db-sock" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=light-dark(#000000,#000000);entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="VXOCUtF4EI4AEpHX8tc7-31">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="712" />
+              <mxPoint x="873" y="712" />
+              <mxPoint x="873" y="1080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="AUTH-sql-lbl" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=10;" value="&lt;span style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 0, 0));&quot;&gt;SQL (TypeORM)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="14" width="110" x="925" y="697" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

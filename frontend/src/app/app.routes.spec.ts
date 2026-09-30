@@ -1,0 +1,80 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { environment } from '../environments/environment';
+import { routes } from './app.routes';
+import { AuthStatus } from './auth/interfaces/auth-status.enum';
+import { AuthService } from './auth/services/auth.service';
+
+describe('rutas y guards', () => {
+  let harness: RouterTestingHarness;
+  let auth: AuthService;
+
+  const pageText = () => harness.routeNativeElement?.textContent ?? '';
+
+  /** Simula el arranque: la app resuelve la sesión antes de la primera navegación. */
+  function restoreSession() {
+    localStorage.setItem('token', 'jwt-1');
+    auth.checkAuthStatus().subscribe();
+    TestBed.inject(HttpTestingController)
+      .expectOne(`${environment.apiUrl}/auth/check-token`)
+      .flush({
+        token: 'jwt-2',
+        user: { id: 'u1', email: 'ada@example.com', name: 'Ada', isActive: true, roles: ['user'] },
+      });
+    expect(auth.authStatus()).toBe(AuthStatus.Authenticated);
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+    });
+    auth = TestBed.inject(AuthService);
+    harness = await RouterTestingHarness.create();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('AC-09: sin sesión, una ruta privada redirige a /auth/login', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/');
+
+    expect(pageText()).toContain('Iniciar sesión');
+  });
+
+  it('sin sesión, /auth/register es accesible', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/auth/register');
+
+    expect(pageText()).toContain('Crear cuenta');
+  });
+
+  it('AC-08: con token guardado se restaura la sesión y se accede a la ruta privada', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/');
+
+    expect(pageText()).toContain('Hola, Ada');
+  });
+
+  it('con sesión activa, /auth/login redirige a la ruta privada', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/auth/login');
+
+    expect(pageText()).toContain('Hola, Ada');
+  });
+
+  it('una URL desconocida termina en login si no hay sesión', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/no-existe');
+
+    expect(pageText()).toContain('Iniciar sesión');
+  });
+});
