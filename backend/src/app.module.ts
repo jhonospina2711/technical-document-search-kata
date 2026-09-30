@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { requestIdMiddleware } from './common/request-id';
 import { validateEnv } from './config/env.validation';
 import { postgresConnection } from './database/postgres-connection';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { postgresConnection } from './database/postgres-connection';
       }),
     }),
     AuthModule,
+    DocumentsModule,
   ],
 })
 export class AppModule implements NestModule {

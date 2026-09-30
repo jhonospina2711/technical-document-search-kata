@@ -54,6 +54,22 @@ Responsable de:
 - Estado del procesamiento.
 - Publicación de eventos de procesamiento.
 
+**Modelo `Document`** (tabla `documents` en PostgreSQL):
+
+| Campo | Descripción |
+|---|---|
+| `id` | Identificador único (uuid generado por la base de datos). |
+| `title`, `author`, `category`, `version` | Metadatos del documento (texto libre). |
+| `tags` | Lista de etiquetas. |
+| `file_name`, `file_format` | Nombre y formato del archivo (`TXT`, `PDF`, `MD`). |
+| `status` | Estado de procesamiento: `PROCESANDO` → `PROCESADO` o `ERROR`. |
+| `content` | Texto extraído; es nulo hasta que el Document Worker lo procesa. |
+| `owner_id` | Usuario que subió el documento (FK a `users`). |
+| `created_at`, `updated_at` | Fechas de creación y actualización. |
+
+Un documento nace en `PROCESANDO`. Solo puede pasar a `PROCESADO` o `ERROR`, y esos
+estados son finales.
+
 #### Search Module
 
 Responsable de:

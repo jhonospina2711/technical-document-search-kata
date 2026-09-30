@@ -10,11 +10,11 @@
 | Etapa | Uso de la IA |
 |---|---|
 | Documentación del repo | Análisis del monorepo y generación de `CLAUDE.md`. |
-| Especificación | Redacción de la SPEC-01 (Auth) con alcance, criterios de aceptación y pasos. |
+| Especificación | Redacción de la SPEC-01 (Auth) y la SPEC-02 (entidad `Document`) con alcance, criterios de aceptación y pasos. |
 | Boilerplate | Estructura de NestJS (`backend/`) y Angular (`frontend/`), `docker-compose.yml`, `.env.example`, ESLint. |
-| Implementación | Módulo `auth` (Onion Architecture) y migración de `users` en el backend; `AuthService`, interceptor, guards y páginas en el frontend. |
+| Implementación | Módulo `auth` (Onion Architecture) y migración de `users` en el backend; `AuthService`, interceptor, guards y páginas en el frontend. Entidad de dominio `Document`, entidad TypeORM y migración de `documents` (KTL-5). |
 | Refactorización | Portado de `nest-gpt` y `authapp` corrigiendo sus debilidades: `synchronize: true`, secreto JWT sin validar, mensajes de login que revelaban si el correo existía, redirección a login al recargar la página. |
-| Generación de tests | 54 tests unitarios y 9 de integración (backend); 36 tests en Karma/Jasmine (frontend). |
+| Generación de tests | 54 tests unitarios y 9 de integración (backend); 36 tests en Karma/Jasmine (frontend). Para `Document`: 8 tests unitarios de dominio y 6 de persistencia contra PostgreSQL real. |
 | Resolución de errores | Diagnósticos de TypeScript, lint y compilación durante la implementación. |
 | Documentación | `README.md` y propuestas de cambio a `architecture.md`. |
 
@@ -34,3 +34,4 @@
 - **Documentación controlada:** los cambios a `architecture.md` se aprobaron uno a uno; el texto de este archivo lo revisó el autor.
 - **Pendiente de validación manual:** hashing de contraseñas, manejo de errores del guard, configuración de `JwtModule` y la migración de `users`. La migración no se ha ejecutado contra PostgreSQL real.
 - **Correcciones sobre lo generado:** se ajustó el código propuesto por la IA cuando fallaba lint o tipos, y se eliminaron tests innecesarios.
+- **SPEC-02 (entidad `Document`):** las decisiones abiertas (estados `PROCESANDO`/`PROCESADO`/`ERROR`, `owner_id` obligatorio, `version` y `category` como texto libre) las resolvió el autor antes de aprobar la SPEC. La migración de `documents` se ejecutó contra PostgreSQL real, en una base temporal, y se comprobaron las restricciones `CHECK`, la FK y el revert. Pendiente de validación manual: las reglas de transición de estado y la correspondencia entre `DocumentOrmEntity` y la migración.
