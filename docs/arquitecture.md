@@ -73,6 +73,11 @@ Responsable de:
 Un documento nace en `PROCESANDO`. Solo puede pasar a `PROCESADO` o `ERROR`, y esos
 estados son finales.
 
+**Consulta de un documento.** `GET /documents/:id` (capas application y presentation de
+Documents) lee por clave primaria el documento con su estado y contenido. Es de solo
+lectura: no toca el `FileStore` ni RabbitMQ y no devuelve el archivo original ni `owner_id`.
+Errores: `400` (id que no es UUID), `401` y `404`.
+
 #### Search Module
 
 Responsable de:

@@ -20,6 +20,10 @@ class InMemoryDocuments extends DocumentRepository {
     return saved;
   }
 
+  async findById(id: string): Promise<Document | null> {
+    return this.rows.get(id) ?? null;
+  }
+
   async remove(id: string): Promise<void> {
     this.rows.delete(id);
   }

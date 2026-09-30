@@ -6,6 +6,12 @@ export class InvalidDocumentTransitionError extends Error {
   }
 }
 
+export class DocumentNotFoundError extends Error {
+  constructor() {
+    super('Documento no encontrado');
+  }
+}
+
 export class UnsupportedFileFormatError extends Error {
   constructor(fileName: string) {
     super(`Formato no soportado: "${fileName}". Solo se admiten archivos .txt, .pdf y .md`);

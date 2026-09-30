@@ -83,6 +83,10 @@ Contrato para el consumidor (Document Worker): consumir con ACK manual, hacer `a
 
 Riesgo conocido: si el proceso del API cae entre guardar el documento y recibir la confirmación del broker, puede quedar un documento en `PROCESANDO` sin mensaje (no hay outbox).
 
+### Consulta de un documento
+
+`GET /documents/:id` (requiere `Authorization: Bearer <token>`) devuelve el detalle de un documento: `id`, `title`, `author`, `category`, `tags`, `version`, `fileName`, `fileFormat`, `status` (`PROCESANDO` | `PROCESADO` | `ERROR`), `content` (texto extraído; `null` mientras no esté `PROCESADO`) y las fechas `createdAt`/`updatedAt`. No devuelve el archivo original ni `ownerId`, y cualquier usuario autenticado puede consultar cualquier documento. Respuestas: `200`, `400` (`id` que no es un UUID), `401` y `404` (el documento no existe).
+
 ### Pantalla de carga (frontend)
 
 Ruta privada `/documents/upload` (enlace desde la home): elige un archivo TXT, PDF o MD, completa título, autor, categoría, versión (SemVer `X.Y.Z`) y tags opcionales, y lo envía a `POST /documents` con progreso de subida. Al recibir `202` muestra el `id` y el estado `PROCESANDO`; el seguimiento en vivo del estado (SSE) aún no está implementado. Valida en cliente tipo, tamaño, archivo vacío y nombre, pero el backend sigue siendo la autoridad (`400`/`413`).

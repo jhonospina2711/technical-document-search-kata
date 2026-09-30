@@ -13,6 +13,7 @@ describe('TypeOrmDocumentRepository', () => {
     create: jest.fn((value: object) => ({ ...value })),
     save: jest.fn(async (value: object) => ({ ...value, id: 'doc-1', createdAt: new Date(), updatedAt: new Date() })),
     delete: jest.fn(),
+    findOneBy: jest.fn(),
   };
   const repository = new TypeOrmDocumentRepository(orm as unknown as Repository<DocumentOrmEntity>);
 
@@ -26,6 +27,20 @@ describe('TypeOrmDocumentRepository', () => {
 
     expect(orm.create).toHaveBeenCalledWith(document);
     expect(saved).toMatchObject({ id: 'doc-1', status: 'PROCESANDO', content: null });
+  });
+
+  it('busca por id y devuelve el documento', async () => {
+    const row = { id: 'doc-1', title: 't' };
+    orm.findOneBy.mockResolvedValueOnce(row);
+
+    await expect(repository.findById('doc-1')).resolves.toBe(row);
+    expect(orm.findOneBy).toHaveBeenCalledWith({ id: 'doc-1' });
+  });
+
+  it('devuelve null si el documento no existe', async () => {
+    orm.findOneBy.mockResolvedValueOnce(null);
+
+    await expect(repository.findById('otro')).resolves.toBeNull();
   });
 
   it('elimina por id', async () => {
