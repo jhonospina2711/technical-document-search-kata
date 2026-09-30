@@ -1,0 +1,157 @@
+<div class="viewer" [attr.aria-busy]="view().state === 'loading'">
+  @switch (view().state) {
+    @case ('loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__line skeleton__line--back"></span>
+        <span class="skeleton__line skeleton__line--title"></span>
+        <span class="skeleton__line skeleton__line--meta"></span>
+        <div class="layout">
+          <div class="card skeleton">
+            @for (n of skeletonLines; track n) {
+              <span class="skeleton__line"></span>
+            }
+          </div>
+          <div class="card skeleton">
+            @for (n of fieldSkeletons; track n) {
+              <span class="skeleton__line skeleton__line--field"></span>
+            }
+          </div>
+        </div>
+      </div>
+      <p class="sr-only">Cargando documento…</p>
+    }
+
+    @case ('notFound') {
+      <div class="panel">
+        <svg class="panel__icon" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+          <path d="M14 3v5h5M9.5 13.5l5 5M14.5 13.5l-5 5" />
+        </svg>
+        <h1>Documento no encontrado</h1>
+        <p>El enlace no corresponde a ningún documento. Puede haber sido eliminado o el identificador no es válido.</p>
+        <a class="button button--primary" routerLink="/search">Volver a la búsqueda</a>
+      </div>
+    }
+
+    @case ('failure') {
+      @if (view().failure?.kind !== 'unauthorized') {
+        <div class="banner" role="alert">
+          <div>
+            <h1>No se pudo cargar el documento</h1>
+            <p>{{ view().failure?.message }}</p>
+          </div>
+          <button type="button" class="button button--danger" (click)="retry()">Reintentar</button>
+        </div>
+      }
+    }
+
+    @case ('loaded') {
+      @if (view().document; as doc) {
+        <nav aria-label="Migas de pan" class="crumbs">
+          <a class="crumbs__back" [href]="backHref()" (click)="onBack($event)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Volver a resultados
+          </a>
+        </nav>
+
+        <header class="header">
+          <div class="header__row">
+            <h1>{{ doc.title }}</h1>
+            <div class="badges">
+              @switch (doc.status) {
+                @case ('PROCESADO') {
+                  <span class="badge badge--success">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="m8 12 3 3 5-6" />
+                    </svg>
+                    PROCESADO
+                  </span>
+                }
+                @case ('PROCESANDO') {
+                  <span class="badge badge--warning">
+                    <svg class="badge__spinner" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                      <path d="M21 12a9 9 0 1 1-6.2-8.55" />
+                    </svg>
+                    PROCESANDO
+                  </span>
+                }
+                @case ('ERROR') {
+                  <span class="badge badge--danger">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 8v5M12 16.5v.01" />
+                    </svg>
+                    ERROR
+                  </span>
+                }
+              }
+              <span class="badge badge--format mono">{{ doc.fileFormat }}</span>
+            </div>
+          </div>
+          <p class="byline">
+            Por {{ doc.author }} · Versión <span class="mono">{{ doc.version }}</span> · Creado el
+            <span class="mono">{{ createdAt() }}</span>
+          </p>
+        </header>
+
+        <div class="layout">
+          <section class="card" aria-label="Contenido">
+            @switch (doc.status) {
+              @case ('PROCESADO') {
+                <div class="toolbar">
+                  <button type="button" class="button button--secondary" [disabled]="!hasContent()" (click)="copyContent()">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    Copiar contenido
+                  </button>
+                  <span class="feedback" aria-live="polite">{{ contentFeedback() }}</span>
+                  <span class="toolbar__counts mono">{{ charCount() }} caracteres · {{ wordCount() }} palabras</span>
+                </div>
+                @if (hasContent()) {
+                  <div class="text" role="region" aria-label="Contenido del documento" tabindex="0">@for (segment of segments(); track $index) {@if (segment.highlight) {<mark>{{ segment.text }}</mark>} @else {<span>{{ segment.text }}</span>}}</div>
+                } @else {
+                  <div class="notice notice--danger" role="alert">
+                    <strong>El documento no tiene contenido disponible</strong>
+                  </div>
+                }
+              }
+              @case ('PROCESANDO') {
+                <div class="notice notice--warning">
+                  <div>
+                    <strong>El documento se está procesando.</strong>
+                    <p>El contenido estará disponible en unos momentos.</p>
+                    <p class="feedback" aria-live="polite">{{ refreshFeedback() }}</p>
+                  </div>
+                  <button type="button" class="button button--secondary" [disabled]="view().refreshing" [attr.aria-busy]="view().refreshing" (click)="refresh()">
+                    {{ view().refreshing ? 'Actualizando…' : 'Actualizar' }}
+                  </button>
+                </div>
+                <div class="skeleton" aria-hidden="true">
+                  @for (n of skeletonLines; track n) {
+                    <span class="skeleton__line"></span>
+                  }
+                </div>
+              }
+              @case ('ERROR') {
+                <div class="notice notice--danger" role="alert">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 8v5M12 16.5v.01" />
+                  </svg>
+                  <strong>No se pudo procesar el documento.</strong>
+                </div>
+              }
+            }
+          </section>
+
+          <app-document-metadata-panel [document]="doc" [idCopyFeedback]="idFeedback()" (copyId)="copyId()" />
+        </div>
+      }
+    }
+  }
+</div>

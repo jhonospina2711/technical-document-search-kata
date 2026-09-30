@@ -101,7 +101,15 @@ Ruta privada `/search` (enlace desde la home): barra de búsqueda, resultados co
 
 Términos de prueba con el mock: `kubernetes` (12 resultados, dos páginas), `terraform` (1 resultado), un término sin coincidencias (estado vacío) y `error` (fuerza el estado de error).
 
-Limitaciones conocidas: el código y los datos del mock también viajan en el bundle de producción (el flag se evalúa en ejecución; no se ejecuta con `useMockSearch: false`, pero no se elimina del paquete). «Ver documento» enlaza a `/documents/:id`, ruta que aún no existe (redirige a la home).
+Limitaciones conocidas: el código y los datos del mock también viajan en el bundle de producción (el flag se evalúa en ejecución; no se ejecuta con `useMockSearch: false`, pero no se elimina del paquete). «Ver documento» enlaza a `/documents/:id?q=<término>` (visor, abajo).
+
+### Visor de documentos (frontend)
+
+Ruta privada `/documents/:id` (se llega desde «Ver documento» en los resultados o por enlace directo): consulta `GET /documents/:id` y muestra el título, el estado (`PROCESADO`, `PROCESANDO` o `ERROR`), los metadatos completos y el texto extraído, con contador de caracteres y palabras y botones para copiar el contenido y el ID. El contenido llega como texto plano y se muestra como tal (saltos de línea preservados, sin Markdown ni HTML). Si la URL trae `?q=término`, se resaltan en el texto las coincidencias literales de esos términos (sin distinguir mayúsculas; hasta 10 términos y 500 marcas). Ese resaltado no reproduce el stemming ni los acentos del FTS de PostgreSQL, así que una palabra que el buscador considera coincidente puede no resaltarse.
+
+Estados: cargando (esqueleto), `PROCESANDO` (aviso y botón «Actualizar»; no hay SSE todavía, se actualiza a mano), `ERROR` (mensaje genérico: el backend no guarda el motivo), «Documento no encontrado» (`404` o `400`) y error de red o `5xx` (con «Reintentar»). «Volver a resultados» usa el historial si se llegó desde otra pantalla de la app, y si no, va a `/search` (con `?q=` si existe).
+
+Limitaciones conocidas: el contenido se pinta completo (sin paginar ni virtualizar), así que documentos muy grandes pueden tardar en renderizar; el visor se validó visualmente con respuestas simuladas, no contra el backend real.
 
 ## Document Worker
 

@@ -14,8 +14,11 @@ const DATE_FORMAT = new Intl.DateTimeFormat('es', { day: '2-digit', month: 'shor
 })
 export class SearchResultCard {
   readonly item = input.required<SearchResultItem>();
+  /** Término con el que se buscó; el visor lo usa para resaltar. Vacío: el enlace no lleva `q`. */
+  readonly term = input('');
 
   protected readonly documentLink = computed(() => ['/documents', this.item().id]);
+  protected readonly documentQuery = computed(() => (this.term() ? { q: this.term() } : {}));
   /** Relevancia como porcentaje entero; acota puntuaciones fuera de [0, 1]. */
   protected readonly percent = computed(() => Math.round(Math.min(1, Math.max(0, this.item().score || 0)) * 100));
   protected readonly date = computed(() => {
