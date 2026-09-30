@@ -46,7 +46,7 @@ describe('ProcessDocument', () => {
   });
 
   it('un formato sin extractor deja el documento en ERROR y elimina el archivo (AC-03)', async () => {
-    extractor.extract.mockRejectedValue(new UnsupportedFormatError('PDF'));
+    extractor.extract.mockRejectedValue(new UnsupportedFormatError('DOCX'));
 
     await expect(useCase.execute('doc-1')).resolves.toBeUndefined();
 

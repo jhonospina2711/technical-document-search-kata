@@ -1,18 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { DocumentFormat } from '../../documents/domain/document';
-import { ContentExtractionError, UnsupportedFormatError } from '../application/errors';
+import { ContentExtractionError } from '../application/errors';
 import { ContentExtractor } from '../application/ports';
+import { normalizeText, NO_TEXT_MESSAGE } from './normalize-text';
 
 /**
- * Extrae texto de TXT y MD (UTF-8). El PDF queda sin soporte hasta KTL-11. Revalida el contenido
+ * Extrae texto de TXT y MD (UTF-8); el enrutado por formato lo hace `FormatContentExtractor`. Revalida el contenido
  * aunque el API ya lo hizo: el volumen compartido es un límite de confianza y PostgreSQL rechaza NUL.
  */
 @Injectable()
 export class TextContentExtractor extends ContentExtractor {
-  async extract(format: DocumentFormat, content: Buffer): Promise<string> {
-    if (format === DocumentFormat.PDF) {
-      throw new UnsupportedFormatError(format);
-    }
+  async extract(_format: DocumentFormat, content: Buffer): Promise<string> {
     if (content.includes(0)) {
       throw new ContentExtractionError('El archivo contiene bytes nulos');
     }
@@ -23,9 +21,9 @@ export class TextContentExtractor extends ContentExtractor {
     } catch {
       throw new ContentExtractionError('El archivo no es UTF-8 válido');
     }
-    const normalized = text.replace(/\r\n?/g, '\n').trim();
+    const normalized = normalizeText(text);
     if (normalized === '') {
-      throw new ContentExtractionError('El archivo no contiene texto extraíble');
+      throw new ContentExtractionError(NO_TEXT_MESSAGE);
     }
     return normalized;
   }

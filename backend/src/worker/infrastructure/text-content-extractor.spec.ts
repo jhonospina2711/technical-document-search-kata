@@ -1,5 +1,5 @@
 import { DocumentFormat } from '../../documents/domain/document';
-import { ContentExtractionError, UnsupportedFormatError } from '../application/errors';
+import { ContentExtractionError } from '../application/errors';
 import { TextContentExtractor } from './text-content-extractor';
 
 describe('TextContentExtractor', () => {
@@ -25,10 +25,6 @@ describe('TextContentExtractor', () => {
 
   it('rechaza contenido vacío o solo espacios', async () => {
     await expect(extractor.extract(DocumentFormat.TXT, Buffer.from(' \r\n\t '))).rejects.toThrow(ContentExtractionError);
-  });
-
-  it('no soporta PDF hasta KTL-11', async () => {
-    await expect(extractor.extract(DocumentFormat.PDF, Buffer.from('%PDF-1.7'))).rejects.toThrow(UnsupportedFormatError);
   });
 
   it('los errores no incluyen el contenido del archivo', async () => {

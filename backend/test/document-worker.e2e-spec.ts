@@ -21,8 +21,11 @@ import {
 } from '../src/documents/infrastructure/rabbitmq/topology';
 import { ProcessDocument } from '../src/worker/application/process-document.use-case';
 import { RabbitMqDocumentConsumer } from '../src/worker/infrastructure/rabbitmq/rabbitmq-document-consumer';
+import { FormatContentExtractor } from '../src/worker/infrastructure/format-content-extractor';
+import { PdfContentExtractor } from '../src/worker/infrastructure/pdf-content-extractor';
 import { TextContentExtractor } from '../src/worker/infrastructure/text-content-extractor';
 import { TypeOrmDocumentProcessingRepository } from '../src/worker/infrastructure/typeorm-document-processing.repository';
+import { buildPdf } from './support/pdf-fixture';
 
 config({ path: ['.env', '../.env'] });
 
@@ -81,7 +84,7 @@ describe('Document Worker (PostgreSQL y RabbitMQ reales)', () => {
     const useCase = new ProcessDocument(
       new TypeOrmDocumentProcessingRepository(db.getRepository(DocumentOrmEntity)),
       store,
-      new TextContentExtractor(),
+      new FormatContentExtractor(new TextContentExtractor(), new PdfContentExtractor()),
     );
     consumer = new RabbitMqDocumentConsumer(settings(), useCase);
     consumer.onApplicationBootstrap();
@@ -181,8 +184,29 @@ describe('Document Worker (PostgreSQL y RabbitMQ reales)', () => {
     expect(await count(DOCUMENTS_DLQ)).toBe(0);
   });
 
-  run('un PDF termina en ERROR sin contenido, con el archivo eliminado y el mensaje confirmado (AC-03)', async () => {
-    const id = await upload(Buffer.from('%PDF-1.7'), DocumentFormat.PDF);
+  run('un PDF válido queda PROCESADO con el texto de todas sus páginas, sin archivo residual ni mensajes pendientes (AC-01)', async () => {
+    const id = await upload(buildPdf(['Primera pagina', 'Segunda pagina']), DocumentFormat.PDF);
+    await startConsumer();
+
+    await publisher.publishUploaded(id);
+    await until(async () => (await document(id)).status !== DocumentStatus.PROCESANDO);
+
+    expect(await document(id)).toMatchObject({
+      status: DocumentStatus.PROCESADO,
+      content: 'Primera pagina\n\nSegunda pagina',
+    });
+    await until(async () => !(await exists(join(uploadDir, id))));
+    await stopConsumer();
+    expect(await count(DOCUMENTS_QUEUE)).toBe(0);
+    expect(await count(DOCUMENTS_DLQ)).toBe(0);
+  });
+
+  it.each([
+    ['protegido con contraseña (AC-02)', () => buildPdf(['secreto'], { encrypted: true })],
+    ['corrupto (AC-03)', () => Buffer.from('%PDF-1.7\nesto no es un PDF')],
+  ])('un PDF %s termina en ERROR sin contenido, con el archivo eliminado y el mensaje confirmado', async (_name, pdf) => {
+    if (!available) return;
+    const id = await upload(pdf(), DocumentFormat.PDF);
     await startConsumer();
 
     await publisher.publishUploaded(id);
@@ -193,7 +217,7 @@ describe('Document Worker (PostgreSQL y RabbitMQ reales)', () => {
     await stopConsumer();
     expect(await count(DOCUMENTS_QUEUE)).toBe(0);
     expect(await count(DOCUMENTS_DLQ)).toBe(0);
-  });
+  }, 20000);
 
   run('un documento inexistente se confirma sin escribir nada (AC-05)', async () => {
     await startConsumer();

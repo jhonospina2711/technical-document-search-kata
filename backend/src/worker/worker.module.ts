@@ -8,6 +8,8 @@ import { DocumentOrmEntity } from '../documents/infrastructure/document.orm-enti
 import { FilesystemFileStore } from '../documents/infrastructure/filesystem-file-store';
 import { ContentExtractor, DocumentProcessingRepository } from './application/ports';
 import { ProcessDocument } from './application/process-document.use-case';
+import { FormatContentExtractor } from './infrastructure/format-content-extractor';
+import { PdfContentExtractor } from './infrastructure/pdf-content-extractor';
 import { RabbitMqDocumentConsumer } from './infrastructure/rabbitmq/rabbitmq-document-consumer';
 import { TextContentExtractor } from './infrastructure/text-content-extractor';
 import { TypeOrmDocumentProcessingRepository } from './infrastructure/typeorm-document-processing.repository';
@@ -26,7 +28,9 @@ import { TypeOrmDocumentProcessingRepository } from './infrastructure/typeorm-do
   providers: [
     { provide: DocumentProcessingRepository, useClass: TypeOrmDocumentProcessingRepository },
     { provide: FileStore, useClass: FilesystemFileStore },
-    { provide: ContentExtractor, useClass: TextContentExtractor },
+    TextContentExtractor,
+    PdfContentExtractor,
+    { provide: ContentExtractor, useClass: FormatContentExtractor },
     ProcessDocument,
     RabbitMqDocumentConsumer,
   ],
