@@ -166,9 +166,11 @@ describe('rutas y guards', () => {
   });
 
   it('SPEC-10: /search?q=... consulta y muestra resultados del mock', async () => {
-    restoreSession();
-    jasmine.clock().install();
+    const originalMockFlag = environment.useMockSearch;
+    environment.useMockSearch = true;
     try {
+      restoreSession();
+      jasmine.clock().install();
       await harness.navigateByUrl('/search?q=kubernetes');
       expect(harness.routeNativeElement?.querySelectorAll('.skeleton').length).toBe(5);
 
@@ -179,6 +181,7 @@ describe('rutas y guards', () => {
       expect(harness.routeNativeElement?.querySelectorAll('app-search-result-card').length).toBe(10);
     } finally {
       jasmine.clock().uninstall();
+      environment.useMockSearch = originalMockFlag;
     }
   });
 
