@@ -5,6 +5,7 @@ import {
   ExceptionFilter,
   HttpException,
   Logger,
+  NotFoundException,
   PayloadTooLargeException,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { requestIdOf } from '../../common/request-id';
 import {
+  DocumentNotFoundError,
   EmptyFileError,
   EventPublishError,
   InvalidFileContentError,
@@ -24,13 +26,15 @@ type UploadDomainError =
   | EmptyFileError
   | InvalidFileContentError
   | InvalidFileNameError
-  | EventPublishError;
+  | EventPublishError
+  | DocumentNotFoundError;
 
 // Multer no expone mensajes estables entre versiones ("Unexpected field" → "Unexpected file field").
 const MULTER_FILE_COUNT_MESSAGE = /^(Too many files|Unexpected (file )?field)/i;
 
 /**
- * Traduce a mensajes claros en español los rechazos de la carga: errores de dominio (`400`) y
+ * Traduce a mensajes claros en español los rechazos de la carga y de la consulta (`404` si el
+ * documento no existe): errores de dominio (`400`) y
  * errores de multer (`413` por tamaño, `400` por más de un archivo o campo inesperado). Si el broker
  * no confirmó el evento responde `503` sin detalles internos.
  * Cualquier otra `HttpException` (p. ej. validación del DTO) se devuelve tal cual.
@@ -41,6 +45,7 @@ const MULTER_FILE_COUNT_MESSAGE = /^(Too many files|Unexpected (file )?field)/i;
   InvalidFileContentError,
   InvalidFileNameError,
   EventPublishError,
+  DocumentNotFoundError,
   PayloadTooLargeException,
   BadRequestException,
 )
@@ -51,12 +56,15 @@ export class DocumentsExceptionFilter implements ExceptionFilter {
 
   catch(error: UploadDomainError | HttpException, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    this.logger.warn(`[${requestIdOf(http.getRequest<Request>())}] carga no completada: ${error.constructor.name}`);
+    this.logger.warn(`[${requestIdOf(http.getRequest<Request>())}] petición rechazada: ${error.constructor.name}`);
     const exception = this.toHttpException(error);
     http.getResponse<Response>().status(exception.getStatus()).json(exception.getResponse());
   }
 
   private toHttpException(error: UploadDomainError | HttpException): HttpException {
+    if (error instanceof DocumentNotFoundError) {
+      return new NotFoundException('Documento no encontrado');
+    }
     if (error instanceof EventPublishError) {
       return new ServiceUnavailableException('Servicio no disponible, intenta de nuevo');
     }

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { GetDocument } from './application/get-document.use-case';
 import { DocumentEventPublisher, FileStore } from './application/ports';
 import { UploadDocument } from './application/upload-document.use-case';
 import { DocumentRepository } from './domain/document.repository';
@@ -40,6 +41,7 @@ const FORM_FIELD_LIMITS = { fields: 10, fieldSize: 8 * 1024, parts: 12 };
     { provide: FileStore, useClass: FilesystemFileStore },
     { provide: DocumentEventPublisher, useClass: RabbitMqDocumentEventPublisher },
     UploadDocument,
+    GetDocument,
   ],
 })
 export class DocumentsModule {}

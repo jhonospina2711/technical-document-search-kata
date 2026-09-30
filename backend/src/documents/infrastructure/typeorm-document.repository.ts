@@ -15,6 +15,10 @@ export class TypeOrmDocumentRepository extends DocumentRepository {
     return this.orm.save(this.orm.create(document));
   }
 
+  async findById(id: string): Promise<Document | null> {
+    return this.orm.findOneBy({ id });
+  }
+
   async remove(id: string): Promise<void> {
     await this.orm.delete({ id });
   }

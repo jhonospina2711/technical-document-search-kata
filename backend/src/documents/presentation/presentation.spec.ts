@@ -1,10 +1,12 @@
-import { ArgumentsHost, BadRequestException, PayloadTooLargeException } from '@nestjs/common';
+import { ArgumentsHost, BadRequestException, PayloadTooLargeException, ParseUUIDPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { GetDocument } from '../application/get-document.use-case';
 import { UploadDocument } from '../application/upload-document.use-case';
-import { DocumentStatus } from '../domain/document';
+import { Document, DocumentFormat, DocumentStatus } from '../domain/document';
 import {
+  DocumentNotFoundError,
   EmptyFileError,
   EventPublishError,
   InvalidFileContentError,
@@ -44,11 +46,50 @@ describe('UploadDocumentDto', () => {
 
 describe('DocumentsController', () => {
   const execute = jest.fn();
-  const controller = new DocumentsController({ execute } as unknown as UploadDocument);
+  const getExecute = jest.fn();
+  const controller = new DocumentsController(
+    { execute } as unknown as UploadDocument,
+    { execute: getExecute } as unknown as GetDocument,
+  );
   const req = { user: { id: 'user-1' }, headers: {} } as never;
   const dto = { ...valid, tags: ['a'] } as UploadDocumentDto;
 
-  beforeEach(() => execute.mockReset());
+  beforeEach(() => {
+    execute.mockReset();
+    getExecute.mockReset();
+  });
+
+  const stored: Document = {
+    id: 'doc-1', title: 't', author: 'a', category: 'c', tags: ['x'], version: '1.0.0', fileName: 'f.md',
+    fileFormat: DocumentFormat.MD, ownerId: 'user-9', status: DocumentStatus.PROCESADO, content: '# hola',
+    createdAt: new Date('2026-05-14T09:30:00Z'), updatedAt: new Date('2026-05-18T14:15:00Z'),
+  };
+
+  it('devuelve el detalle sin ownerId y con fechas ISO (AC-01)', async () => {
+    getExecute.mockResolvedValue(stored);
+
+    const detail = await controller.get('doc-1', req);
+
+    expect(getExecute).toHaveBeenCalledWith('doc-1');
+    expect(detail).toEqual({
+      id: 'doc-1', title: 't', author: 'a', category: 'c', tags: ['x'], version: '1.0.0', fileName: 'f.md',
+      fileFormat: 'MD', status: 'PROCESADO', content: '# hola',
+      createdAt: '2026-05-14T09:30:00.000Z', updatedAt: '2026-05-18T14:15:00.000Z',
+    });
+    expect(detail).not.toHaveProperty('ownerId');
+  });
+
+  it('conserva content null en PROCESANDO y tags vacío como lista (AC-02, AC-07)', async () => {
+    getExecute.mockResolvedValue({ ...stored, status: DocumentStatus.PROCESANDO, content: null, tags: [] });
+
+    await expect(controller.get('doc-1', req)).resolves.toMatchObject({ status: 'PROCESANDO', content: null, tags: [] });
+  });
+
+  it('propaga DocumentNotFoundError del caso de uso (AC-03)', async () => {
+    getExecute.mockRejectedValue(new DocumentNotFoundError());
+
+    await expect(controller.get('nope', req)).rejects.toBeInstanceOf(DocumentNotFoundError);
+  });
 
   it('entrega el archivo al caso de uso con el propietario del token y devuelve id y estado', async () => {
     execute.mockResolvedValue({ id: 'doc-1', status: DocumentStatus.PROCESANDO, fileFormat: 'MD' });
@@ -65,6 +106,29 @@ describe('DocumentsController', () => {
   it('responde 400 si falta el archivo (AC-05)', async () => {
     await expect(controller.upload(dto, undefined, req)).rejects.toThrow(BadRequestException);
     expect(execute).not.toHaveBeenCalled();
+  });
+});
+
+describe('validación del :id de GET /documents/:id', () => {
+  // El pipe se declara en el parámetro `id` del método `get`; se lee de los metadatos de Nest.
+  const routeArguments = Reflect.getMetadata('__routeArguments__', DocumentsController, 'get') as Record<
+    string,
+    { data?: string; pipes: ParseUUIDPipe[] }
+  >;
+  const pipe = Object.values(routeArguments).find((argument) => argument.data === 'id')!.pipes[0];
+  const meta = { type: 'param', data: 'id' } as never;
+
+  it.each(['abc', '123', ''])('rechaza "%s" con 400 y mensaje en español (AC-04)', async (id) => {
+    await expect(pipe.transform(id, meta)).rejects.toMatchObject({
+      status: 400,
+      response: expect.objectContaining({ message: 'Identificador de documento inválido' }),
+    });
+  });
+
+  it('acepta un UUID', async () => {
+    const id = '3f2b8c1e-7a4d-4e6b-9c1f-2d5a8b7c6e10';
+
+    await expect(pipe.transform(id, meta)).resolves.toBe(id);
   });
 });
 
@@ -115,6 +179,13 @@ describe('DocumentsExceptionFilter', () => {
       });
     },
   );
+
+  it('traduce DocumentNotFoundError a 404 sin incluir el id (AC-03)', () => {
+    expect(respond(new DocumentNotFoundError())).toEqual({
+      status: 404,
+      body: { statusCode: 404, message: 'Documento no encontrado', error: 'Not Found' },
+    });
+  });
 
   it('responde 503 sin detalles internos si el broker no confirmó el evento (AC-03)', () => {
     const { status, body } = respond(new EventPublishError({ cause: new Error('connect ECONNREFUSED amqp://u:secreta@rabbit') }));
