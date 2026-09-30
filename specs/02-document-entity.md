@@ -1,6 +1,6 @@
 # SPEC-02 — Modelo / entidad Document
 
-**Status:** Approved
+**Status:** inplementado
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-01 — Carga de documentos (Jira KTL-1)
 **Tarea Jira:** KTL-5 — E1-01-BE-01 — Modelo / entidad Document
