@@ -1,6 +1,6 @@
 # SPEC-14 — Realtime SSE (backend): Event Publisher y SSE Endpoint
 
-**Status:** Aprobado
+**Status:** Implementado
 **KATA:** Technical Document Search / Viewer
 **HU:** HU-04 — Notificaciones e Integración en Tiempo Real (Jira KTL-4)
 **Tareas Jira:** KTL-26 — E1-04-BE-11 — Event Publisher · KTL-25 — E1-04-BE-10 — SSE Endpoint
