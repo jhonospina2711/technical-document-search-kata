@@ -1,0 +1,13 @@
+<header class="shell-header">
+  <div class="shell-header__inner">
+    <a class="brand" routerLink="/">Documentos técnicos</a>
+    <nav class="shell-nav" aria-label="Principal">
+      @if (!onUploadPage()) {
+        <a class="button button--primary" routerLink="/documents/upload">+ Cargar</a>
+      }
+      <span class="shell-user">{{ auth.currentUser()?.name }}</span>
+      <button type="button" class="link-button" (click)="auth.logout()">Cerrar sesión</button>
+    </nav>
+  </div>
+</header>
+<router-outlet />

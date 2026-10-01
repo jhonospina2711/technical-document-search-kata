@@ -77,7 +77,7 @@ export class DocumentViewerPage {
 
   protected readonly backHref = computed(() => {
     const q = this.q();
-    const tree = this.router.createUrlTree(['/search'], { queryParams: q ? { q } : {} });
+    const tree = this.router.createUrlTree(['/'], { queryParams: q ? { q } : {} });
     return this.location.prepareExternalUrl(this.router.serializeUrl(tree));
   });
 

@@ -154,6 +154,27 @@ select:focus-visible {
   border: 1px solid currentColor;
 }
 
+.banner__file {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.banner__progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.banner__actions .button {
+  text-decoration: none;
+}
+
+.banner__actions .button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .banner__note {
   font-size: 0.8125rem;
   opacity: 0.85;

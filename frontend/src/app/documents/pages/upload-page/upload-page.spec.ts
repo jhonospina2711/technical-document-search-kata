@@ -332,7 +332,7 @@ describe('UploadPage', () => {
       expect(documents.upload).toHaveBeenCalledTimes(1);
     });
 
-    it('al recibir el documento muestra la confirmación con el id y PROCESANDO, y limpia el formulario', () => {
+    it('SPEC-16 AC-04: al recibir el documento muestra "Documento cargado", el archivo, el id y PROCESANDO, sin enlace al visor, y limpia el formulario', () => {
       readyToSubmit();
       type('#tag-input', 'api,');
       submitButton().click();
@@ -340,7 +340,13 @@ describe('UploadPage', () => {
       upload$.next({ type: 'done', document: { id: 'doc-123', status: 'PROCESANDO' } });
       fixture.detectChanges();
 
-      expect(query('[role=status].banner').textContent).toContain('Documento recibido exitosamente');
+      const banner = query('[role=status].banner');
+      expect(banner.textContent).toContain('Documento cargado');
+      expect(query('.banner__file').textContent).toBe('spec.md');
+      expect(banner.textContent).toContain('Procesando documento…');
+      expect(banner.textContent).toContain('El documento estará disponible cuando termine el procesamiento.');
+      expect(banner.querySelector('.badge .spin')).not.toBeNull();
+      expect(banner.querySelector('a')).toBeNull();
       expect(query('.banner code').textContent).toBe('doc-123');
       expect(query('.badge').textContent).toContain('PROCESANDO');
       expect(text()).toContain('Carga completada');
@@ -492,6 +498,36 @@ describe('UploadPage', () => {
       expect(banner.querySelector('.spin')).toBeNull();
       expect(text()).not.toContain('Reconectando');
       expect(query('.banner code').textContent).toBe('doc-123');
+      expect(query('.banner__file').textContent).toBe('spec.md');
+    });
+
+    it('SPEC-16 AC-05: con PROCESADO ofrece "Ver documento" hacia /documents/:id', () => {
+      uploadDocument('doc/123');
+      tracked[0].next({ status: 'PROCESADO', live: false });
+      fixture.detectChanges();
+
+      const link = query<HTMLAnchorElement>('.banner--success a');
+      expect(link.textContent!.trim()).toBe('Ver documento');
+      expect(link.getAttribute('href')).toBe('/documents/doc%2F123');
+    });
+
+    it('SPEC-16 AC-05: con ERROR no hay enlace al visor', () => {
+      uploadDocument();
+      tracked[0].next({ status: 'ERROR', live: false });
+      fixture.detectChanges();
+
+      expect(host.querySelector('.banner a')).toBeNull();
+    });
+
+    it('SPEC-16 FR-05: el nombre del archivo se muestra como texto literal', () => {
+      pick(new File(['x'], '<b>informe</b>.txt'));
+      fillValid();
+      submitButton().click();
+      upload$.next({ type: 'done', document: { id: 'doc-1', status: 'PROCESANDO' } });
+      fixture.detectChanges();
+
+      expect(query('.banner__file').textContent).toBe('<b>informe</b>.txt');
+      expect(host.querySelector('.banner__file b')).toBeNull();
     });
 
     it('pasa al banner de error al recibir ERROR (AC-02)', () => {

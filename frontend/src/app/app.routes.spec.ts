@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import localeEs from '@angular/common/locales/es';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
@@ -65,7 +65,7 @@ describe('rutas y guards', () => {
 
     await harness.navigateByUrl('/');
 
-    expect(pageText()).toContain('Hola, Ada');
+    expect(pageText()).toContain('Buscar documentos');
   });
 
   it('con sesión activa, /auth/login redirige a la ruta privada', async () => {
@@ -73,7 +73,40 @@ describe('rutas y guards', () => {
 
     await harness.navigateByUrl('/auth/login');
 
-    expect(pageText()).toContain('Hola, Ada');
+    expect(TestBed.inject(Router).url).toBe('/');
+    expect(pageText()).toContain('Buscar documentos');
+  });
+
+  it('SPEC-16 AC-01: con sesión, / muestra el buscador sin término dentro del shell', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/');
+
+    expect(pageText()).toContain('Búsqueda de documentación técnica');
+    expect(harness.routeNativeElement?.querySelector<HTMLInputElement>('#search-term')?.value).toBe('');
+    const shell = harness.fixture.nativeElement as HTMLElement;
+    expect(shell.querySelector('app-shell .brand')?.textContent).toContain('Documentos técnicos');
+    expect(shell.textContent).toContain('+ Cargar');
+    expect(shell.textContent).toContain('Ada');
+    expect(shell.textContent).toContain('Cerrar sesión');
+    expect(shell.textContent).not.toContain('Hola, Ada');
+  });
+
+  it('SPEC-16 AC-02: /search redirige a / conservando q, sort y page', async () => {
+    restoreSession();
+
+    await harness.navigateByUrl('/search?q=rabbit&sort=date-desc&page=2');
+
+    expect(TestBed.inject(Router).url).toBe('/?q=rabbit&sort=date-desc&page=2');
+    expect(harness.routeNativeElement?.querySelector<HTMLInputElement>('#search-term')?.value).toBe('rabbit');
+  });
+
+  it('SPEC-16 AC-06: sin sesión, /search redirige a /auth/login', async () => {
+    auth.checkAuthStatus().subscribe();
+
+    await harness.navigateByUrl('/search?q=rabbit');
+
+    expect(pageText()).toContain('Iniciar sesión');
   });
 
   it('AC-02: sin sesión, /documents/upload redirige a /auth/login', async () => {
@@ -138,40 +171,13 @@ describe('rutas y guards', () => {
     TestBed.inject(HttpTestingController).expectNone(`${environment.apiUrl}/documents/upload`);
   });
 
-  it('la home enlaza a la pantalla de carga', async () => {
-    restoreSession();
-
-    await harness.navigateByUrl('/');
-
-    const link = harness.routeNativeElement?.querySelector('a');
-    expect(link?.getAttribute('href')).toBe('/documents/upload');
-  });
-
-  it('SPEC-10 AC-02: sin sesión, /search redirige a /auth/login', async () => {
-    auth.checkAuthStatus().subscribe();
-
-    await harness.navigateByUrl('/search');
-
-    expect(pageText()).toContain('Iniciar sesión');
-  });
-
-  it('SPEC-10 AC-01: con sesión, /search muestra la pantalla de búsqueda sin término', async () => {
-    restoreSession();
-
-    await harness.navigateByUrl('/search');
-
-    expect(pageText()).toContain('Buscar documentos');
-    expect(pageText()).toContain('Búsqueda de documentación técnica');
-    expect(harness.routeNativeElement?.querySelector<HTMLInputElement>('#search-term')?.value).toBe('');
-  });
-
-  it('SPEC-10: /search?q=... consulta y muestra resultados del mock', async () => {
+  it('SPEC-10: /?q=... consulta y muestra resultados del mock', async () => {
     const originalMockFlag = environment.useMockSearch;
     environment.useMockSearch = true;
     try {
       restoreSession();
       jasmine.clock().install();
-      await harness.navigateByUrl('/search?q=kubernetes');
+      await harness.navigateByUrl('/?q=kubernetes');
       expect(harness.routeNativeElement?.querySelectorAll('.skeleton').length).toBe(5);
 
       jasmine.clock().tick(1000);
@@ -183,15 +189,6 @@ describe('rutas y guards', () => {
       jasmine.clock().uninstall();
       environment.useMockSearch = originalMockFlag;
     }
-  });
-
-  it('la home enlaza a la pantalla de búsqueda', async () => {
-    restoreSession();
-
-    await harness.navigateByUrl('/');
-
-    const hrefs = Array.from(harness.routeNativeElement?.querySelectorAll('a') ?? []).map((link) => link.getAttribute('href'));
-    expect(hrefs).toContain('/search');
   });
 
   it('una URL desconocida termina en login si no hay sesión', async () => {

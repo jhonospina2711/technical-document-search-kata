@@ -31,6 +31,7 @@
           <div class="banner__body">
             @if (liveStatus() === 'PROCESADO') {
               <p class="banner__title">Documento procesado</p>
+              <p class="banner__file">{{ document.fileName }}</p>
               <p>
                 El documento <code class="mono">{{ document.id }}</code> ya está indexado y disponible en la búsqueda.
               </p>
@@ -38,18 +39,25 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10" /></svg>
                 {{ liveStatus() }}
               </span>
+              <div class="banner__actions">
+                <a class="button button--primary" [routerLink]="['/documents', document.id]">Ver documento</a>
+              </div>
             } @else {
-              <p class="banner__title">Documento recibido exitosamente</p>
+              <p class="banner__title">Documento cargado</p>
+              <p class="banner__file">{{ document.fileName }}</p>
+              <p class="banner__progress">
+                <span class="badge badge--processing">
+                  <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3a9 9 0 1 0 9 9" />
+                  </svg>
+                  {{ liveStatus() }}
+                </span>
+                Procesando documento…
+              </p>
               <p>
-                El archivo fue encolado para su procesamiento con el identificador
+                El documento estará disponible cuando termine el procesamiento. Identificador:
                 <code class="mono">{{ document.id }}</code>.
               </p>
-              <span class="badge badge--processing">
-                <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3a9 9 0 1 0 9 9" />
-                </svg>
-                {{ liveStatus() }}
-              </span>
               @if (!live()) {
                 <p class="banner__note">
                   Reconectando con el servidor… El estado se actualizará al restablecerse la conexión.
