@@ -97,7 +97,7 @@ describe('DocumentViewerPage', () => {
       providers: [
         provideRouter([
           { path: 'documents/:id', component: DocumentViewerPage },
-          { path: 'search', component: SearchStub },
+          { path: '', pathMatch: 'full', component: SearchStub },
         ]),
         { provide: DocumentsService, useValue: fake },
       ],
@@ -267,7 +267,7 @@ describe('DocumentViewerPage', () => {
       expect(host.querySelector('h1')!.textContent).toBe('Documento no encontrado');
       const link = host.querySelector<HTMLAnchorElement>('a.button')!;
       expect(link.textContent).toContain('Volver a la búsqueda');
-      expect(link.getAttribute('href')).toBe('/search');
+      expect(link.getAttribute('href')).toBe('/');
       expect(host.querySelector('app-document-metadata-panel')).toBeNull();
       expect(host.querySelector('.header')).toBeNull();
     });
@@ -383,28 +383,28 @@ describe('DocumentViewerPage', () => {
   });
 
   describe('volver a resultados', () => {
-    it('AC-16: el enlace apunta a /search con q y, sin historial, navega ahí', async () => {
+    it('AC-16: el enlace apunta a la búsqueda (/) con q y, sin historial, navega ahí', async () => {
       await open('/documents/abc?q=redes');
       respond(detail());
       const back = host.querySelector<HTMLAnchorElement>('.crumbs__back')!;
       const router = TestBed.inject(Router);
 
-      expect(back.getAttribute('href')).toBe('/search?q=redes');
+      expect(back.getAttribute('href')).toBe('/?q=redes');
       back.click();
       await harness.fixture.whenStable();
 
-      expect(router.url).toBe('/search?q=redes');
+      expect(router.url).toBe('/?q=redes');
     });
 
-    it('sin q el enlace apunta a /search', async () => {
+    it('sin q el enlace apunta a /', async () => {
       await open('/documents/abc');
       respond(detail());
 
-      expect(host.querySelector('.crumbs__back')!.getAttribute('href')).toBe('/search');
+      expect(host.querySelector('.crumbs__back')!.getAttribute('href')).toBe('/');
     });
 
     it('AC-16: con navegación previa dentro de la app usa el historial', async () => {
-      await harness.navigateByUrl('/search?q=x&page=2');
+      await harness.navigateByUrl('/?q=x&page=2');
       const location = TestBed.inject(Location);
       const back = spyOn(location, 'back');
       await open('/documents/abc?q=x');

@@ -19,6 +19,11 @@ const MAX_TAG_LENGTH = 40;
 
 type TextField = 'title' | 'author' | 'category' | 'version';
 
+/** Documento recién creado y el nombre del archivo subido, que se guarda antes de limpiar el formulario. */
+interface CreatedDocument extends UploadedDocument {
+  fileName: string;
+}
+
 @Component({
   selector: 'app-upload-page',
   imports: [ReactiveFormsModule, RouterLink, FileDropzone],
@@ -55,7 +60,7 @@ export class UploadPage {
   protected readonly fileError = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
   protected readonly serverError = signal<UploadFailure | null>(null);
-  protected readonly created = signal<UploadedDocument | null>(null);
+  protected readonly created = signal<CreatedDocument | null>(null);
   /** Estado real del documento recién creado, actualizado por SSE; `live` indica si el seguimiento está conectado. */
   protected readonly liveStatus = signal<DocumentStatus>('PROCESANDO');
   protected readonly live = signal(false);
@@ -165,7 +170,7 @@ export class UploadPage {
           if (event.type === 'progress') {
             this.progress.set({ percent: event.percent, loaded: event.loaded, total: event.total });
           } else {
-            this.onUploaded(event.document);
+            this.onUploaded(event.document, file.name);
           }
         },
         error: (failure: UploadFailure) => this.onFailed(failure),
@@ -201,12 +206,12 @@ export class UploadPage {
     return true;
   }
 
-  private onUploaded(document: UploadedDocument): void {
+  private onUploaded(document: UploadedDocument, fileName: string): void {
     this.unlock();
     this.resetForm();
     this.liveStatus.set('PROCESANDO');
     this.live.set(false);
-    this.created.set(document);
+    this.created.set({ ...document, fileName });
   }
 
   private onFailed(failure: UploadFailure): void {
