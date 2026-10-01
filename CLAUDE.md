@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado actual
 
-`backend/` (NestJS: módulos Auth, Documents y Realtime, y el Document Worker como segundo entrypoint en `src/worker/`) y `frontend/` (Angular: autenticación y pantalla de carga de documentos) ya tienen código; Search aún no está implementado, y de Realtime (SSE) solo existe el backend (`GET /realtime/events`, SPEC-14): falta el cliente SSE y la actualización reactiva en Angular. El diseño y las SPEC aprobadas están en `docs/arquitecture.md` (en español) y `specs/`; `diagrams/component-diagram.drawio` es la fuente del diagrama (el `.png` es su exportación; mantener ambos sincronizados). `docs/arquitecture.md` y `docs/ia.md` son documentos protegidos para la defensa de la KATA: no modificarlos sin aprobación explícita.
+`backend/` (NestJS: módulos Auth, Documents, Search y Realtime, y el Document Worker como segundo entrypoint en `src/worker/`) y `frontend/` (Angular: autenticación, carga de documentos con actualización reactiva por SSE, búsqueda contra el `GET /search` real y visor `/documents/:id`) están implementados. Search usa PostgreSQL FTS con índice GIN (SPEC-13, SPEC-17, SPEC-19); Realtime está completo de extremo a extremo: backend `GET /realtime/events` (SPEC-14) y cliente en `frontend/src/app/realtime/` (SPEC-15). El visor es el de SPEC-11. El diseño y las SPEC aprobadas están en `docs/arquitecture.md` (en español) y `specs/`; `diagrams/component-diagram.drawio` es la fuente del diagrama (el `.png` es su exportación; mantener ambos sincronizados). `docs/arquitecture.md` y `docs/ia.md` son documentos protegidos para la defensa de la KATA: no modificarlos sin aprobación explícita.
 
 ## Arquitectura (según `docs/arquitectura.md`)
 

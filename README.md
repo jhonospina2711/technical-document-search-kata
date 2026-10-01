@@ -87,9 +87,28 @@ Riesgo conocido: si el proceso del API cae entre guardar el documento y recibir 
 
 `GET /documents/:id` (requiere `Authorization: Bearer <token>`) devuelve el detalle de un documento: `id`, `title`, `author`, `category`, `tags`, `version`, `fileName`, `fileFormat`, `status` (`PROCESANDO` | `PROCESADO` | `ERROR`), `content` (texto extraído; `null` mientras no esté `PROCESADO`) y las fechas `createdAt`/`updatedAt`. No devuelve el archivo original ni `ownerId`, y cualquier usuario autenticado puede consultar cualquier documento. Respuestas: `200`, `400` (`id` que no es un UUID), `401` y `404` (el documento no existe).
 
+### Búsqueda de documentos
+
+`GET /search?q=<texto>&sort=relevance&page=1&pageSize=10` (requiere `Authorization: Bearer <token>`) busca con PostgreSQL Full-Text Search (`websearch_to_tsquery` con la configuración `documents_es` sobre `search_vector` y el índice GIN; no usa `LIKE`). Busca en título, etiquetas, categoría, autor y contenido, e ignora acentos y mayúsculas y aplica stemming en español («servidores» ≈ «servidor»). Solo devuelve documentos `PROCESADO`, y cualquier usuario autenticado busca en todos.
+
+| Parámetro | Regla | Por defecto |
+|---|---|---|
+| `q` | obligatorio, 1–200 caracteres (se recorta) | — |
+| `sort` | `relevance` \| `date-desc` \| `date-asc` \| `title` | `relevance` |
+| `page` | entero 1–10 000 | `1` |
+| `pageSize` | entero 1–50 | `10` |
+
+Sintaxis de `q`: varias palabras → todas deben aparecer; `"texto entre comillas"` → frase (palabras consecutivas); `a or b` → alternativa; `-palabra` → exclusión. Una frase debe incluir las stop words del texto original: `"configuración y despliegue"` coincide, `"configuración despliegue"` no. Una consulta con solo stop words (p. ej. «de la») devuelve una lista vacía.
+
+Respuesta `200`: `items` (`id`, `title`, `author`, `format`, `version`, `tags`, `createdAt`, `score` y `snippet`), `total`, `page`, `pageSize`, `tookMs` (tiempo de servidor, ms) y `pendingCount` (documentos aún en `PROCESANDO`, que todavía no aparecen). `score` es la relevancia de `ts_rank` normalizada a [0, 1) (título > etiquetas/categoría > autor > contenido). `snippet` es un único fragmento del contenido (hasta ~35 palabras) como `segments` (`{ text, highlight }`, donde `highlight: true` marca los términos encontrados) más `truncatedStart`/`truncatedEnd`; es texto plano (PostgreSQL descarta las etiquetas HTML del contenido) y el cliente debe mostrarlo con interpolación, no como HTML. Una `page` por encima de la última devuelve `items: []` con el `total` real. No devuelve `ownerId` ni el contenido completo. Respuestas: `200`, `400` (parámetro inválido o desconocido), `401`.
+
+Limitaciones conocidas: `sort=title` ordena por código de carácter (mayúsculas antes que minúsculas y acentos al final); `score` es bajo aunque el resultado sea bueno (≈ 0,38 por título, ≈ 0,06 solo por contenido con un término), así que no debe presentarse como porcentaje de acierto; no hay rate limiting ni `statement_timeout`. Detalle en `specs/19-search-endpoint.md` §14.
+
+Rendimiento: el fragmento (`ts_headline`) se calcula una sola vez por resultado de la página, sobre los primeros 500 000 caracteres del contenido; un documento de varios MB en la página añade del orden de 100 ms. Medición de referencia (`backend/test/search-performance.e2e-spec.ts`, 5 000 documentos sintéticos en local): `tookMs` p50 entre 4 y 14 ms según la consulta. Es una referencia, no una garantía del objetivo de 400–1000 ms con volumen real.
+
 ### Pantalla de carga (frontend)
 
-Ruta privada `/documents/upload` (enlace desde la home): elige un archivo TXT, PDF o MD, completa título, autor, categoría, versión (SemVer `X.Y.Z`) y tags opcionales, y lo envía a `POST /documents` con progreso de subida. Al recibir `202` muestra el `id` y el estado `PROCESANDO`; el seguimiento en vivo del estado (SSE) aún no está implementado. Valida en cliente tipo, tamaño, archivo vacío y nombre, pero el backend sigue siendo la autoridad (`400`/`413`).
+Ruta privada `/documents/upload` (enlace desde la home): elige un archivo TXT, PDF o MD, completa título, autor, categoría, versión (SemVer `X.Y.Z`) y tags opcionales, y lo envía a `POST /documents` con progreso de subida. Al recibir `202` muestra el `id` y el estado `PROCESANDO`, y el banner pasa solo a `PROCESADO` o `ERROR` cuando llega el evento por SSE (ver «Avisos de estado en tiempo real»), sin refrescar la página. Valida en cliente tipo, tamaño, archivo vacío y nombre, pero el backend sigue siendo la autoridad (`400`/`413`).
 
 El límite de tamaño que valida y muestra el frontend está en `frontend/src/environments/environment.ts` y `environment.prod.ts` (`maxFileSizeBytes`, 10 MB) y debe mantenerse igual a `UPLOAD_MAX_FILE_SIZE_BYTES` del backend en ambos archivos.
 
@@ -109,7 +128,7 @@ Ruta privada `/documents/:id` (se llega desde «Ver documento» en los resultado
 
 Estados: cargando (esqueleto), `PROCESANDO` (aviso y botón «Actualizar»; no hay SSE todavía, se actualiza a mano), `ERROR` (mensaje genérico: el backend no guarda el motivo), «Documento no encontrado» (`404` o `400`) y error de red o `5xx` (con «Reintentar»). «Volver a resultados» usa el historial si se llegó desde otra pantalla de la app, y si no, va a `/search` (con `?q=` si existe).
 
-Limitaciones conocidas: el contenido se pinta completo (sin paginar ni virtualizar), así que documentos muy grandes pueden tardar en renderizar; el visor se validó visualmente con respuestas simuladas, no contra el backend real.
+Limitaciones conocidas: el contenido se pinta completo (sin paginar ni virtualizar), así que documentos muy grandes pueden tardar en renderizar; el visor se validó contra el backend real (carga → búsqueda → visor).
 
 ## Document Worker
 
@@ -137,6 +156,7 @@ data: {"type":"DOCUMENT_STATUS_CHANGED","documentId":"<uuid>","status":"PROCESAD
 - `status` es `PROCESADO` o `ERROR`. Cada conexión recibe solo los eventos de los documentos del usuario autenticado; el `data` no incluye `ownerId`. Varias pestañas del mismo usuario reciben el mismo evento.
 - Cada 25 s se envía `event: heartbeat` (`data: {}`) para que proxies y balanceadores no cierren la conexión. Nest añade un `id` secuencial por conexión que el servidor no usa.
 - La entrega es como mucho una vez y sin reenvío: los eventos ocurridos sin conexión (del cliente o del API con RabbitMQ) se pierden. Tras (re)conectar, el cliente debe consultar `GET /documents/:id`.
-- `EventSource` del navegador no permite la cabecera `Authorization`: el cliente debe usar `fetch` con streaming. Ese cliente (y la actualización reactiva de la pantalla de carga) aún no está implementado.
+- `EventSource` del navegador no permite la cabecera `Authorization`, por eso el cliente (`frontend/src/app/realtime/services/realtime.service.ts`) usa `fetch` con streaming. La pantalla de carga solo mantiene la conexión mientras el documento recién subido está en `PROCESANDO`: al llegar a `PROCESADO`/`ERROR`, al cerrar el banner, al subir otro documento o al salir de la pantalla la conexión se cierra. Se sigue únicamente el último documento subido; el visor no usa SSE.
+- Reconexión del cliente: reintenta sin límite con espera de 1, 2, 4, 8, 16 y 30 s (tope), y se reinicia a 1 s tras conectar. Si pasan 60 s sin datos (dos latidos) aborta y reconecta. Con `401` cierra la sesión y no reintenta. En cada conexión establecida consulta una vez `GET /documents/:id` para recuperar eventos perdidos o anteriores a la conexión; no hay polling periódico. Mientras está desconectado, el banner `PROCESANDO` muestra «Reconectando…».
 - No hay límite de conexiones por usuario, y el JWT solo se valida al abrir la conexión.
 - Probar a mano: `curl -N -H "Authorization: Bearer <token>" http://localhost:<PORT>/realtime/events` y cargar un documento con el Worker en marcha.
